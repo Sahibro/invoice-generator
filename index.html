@@ -3,19 +3,15 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Universal B2B Billing App — Stable Print & High‑Quality PDF</title>
-
-<!-- Fonts -->
+<title>Universal B2B Billing App — Global</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
 <style>
   :root{
-    --bg:#f4f6f8; --card:#ffffff; --muted:#6b7280; --accent:#0f172a;
+    --bg:#f4f6f8; --card:#fff; --muted:#6b7280; --accent:#0f172a;
     --primary:#0f172a; --accentGold:#c9a34a; --radius:12px; --max-width:1200px;
   }
   *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;font-family:'Poppins',sans-serif;background:var(--bg);color:var(--primary);padding:18px}
+  body{margin:0;font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--primary);padding:18px}
   .wrap{max-width:var(--max-width);margin:0 auto;display:grid;grid-template-columns:1fr 420px;gap:18px;align-items:start}
   header{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
   h1{margin:0;font-size:20px}
@@ -27,8 +23,8 @@
   .row{display:flex;gap:12px}
   .row .col{flex:1}
   .items{margin-top:8px;border-radius:10px;overflow:hidden;border:1px solid #eef2f6}
-  .items header{display:grid;grid-template-columns:1fr 90px 70px 70px 110px 90px 40px;background:#fbfbfb;padding:10px 12px;font-weight:600;color:var(--muted);font-size:13px}
-  .item-row{display:grid;grid-template-columns:1fr 90px 70px 70px 110px 90px 40px;gap:8px;padding:10px 12px;align-items:center;border-top:1px solid #f3f5f7}
+  .items header{display:grid;grid-template-columns:1fr 90px 80px 70px 90px 90px 60px;background:#fbfbfb;padding:10px 12px;font-weight:600;color:var(--muted);font-size:13px}
+  .item-row{display:grid;grid-template-columns:1fr 90px 80px 70px 90px 90px 60px;gap:8px;padding:10px 12px;align-items:center;border-top:1px solid #f3f5f7}
   .item-row input, .item-row select{padding:8px;border-radius:8px;border:1px solid #eef2f6}
   .item-row .remove{background:transparent;border:0;color:#d03b3b;font-weight:700;cursor:pointer}
   .controls{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
@@ -56,19 +52,11 @@
   .center{text-align:center}
   .signature{margin-top:28px;display:flex;justify-content:flex-end}
   .sign-box{width:220px;text-align:center;border-top:1px solid #ddd;padding-top:8px;font-size:13px;color:var(--muted)}
-
-  .history-panel{position:fixed;right:18px;top:80px;width:360px;max-height:70vh;overflow:auto;background:#fff;border-radius:10px;box-shadow:0 12px 40px rgba(15,23,42,0.12);padding:12px;z-index:1200}
+  .history-panel{position:fixed;right:18px;top:80px;width:420px;max-height:70vh;overflow:auto;background:#fff;border-radius:10px;box-shadow:0 12px 40px rgba(15,23,42,0.12);padding:12px;z-index:1200}
   .history-item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid #f1f3f5}
-
   @media (max-width:1100px){.wrap{grid-template-columns:1fr 360px}}
-  @media (max-width:900px){.wrap{grid-template-columns:1fr;padding:12px}.items header, .item-row{grid-template-columns:1fr 80px 60px 60px 90px 80px 36px}}
-  @media (max-width:640px){
-    .wrap{grid-template-columns:1fr}
-    .history-panel{left:8px;right:8px;top:80px;width:auto}
-    .controls{flex-direction:column}
-    .controls .btn{width:100%}
-  }
-
+  @media (max-width:900px){.wrap{grid-template-columns:1fr;padding:12px}.items header, .item-row{grid-template-columns:1fr 80px 70px 60px 80px 80px 50px}}
+  @media (max-width:640px){.wrap{grid-template-columns:1fr}.history-panel{left:8px;right:8px;top:80px;width:auto}.controls{flex-direction:column}.controls .btn{width:100%}}
   @media print {
     .controls, .btn, header p.lead, input, textarea, select, .items header, .item-row, .card > .controls, .history-panel { display: none !important; }
     html,body{background:#fff !important;color:#000 !important}
@@ -76,7 +64,6 @@
     tr { page-break-inside: avoid; -webkit-column-break-inside: avoid; break-inside: avoid; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color:#000 !important; }
   }
-
   :focus { outline: 3px solid rgba(201,163,74,0.25); outline-offset:2px; }
 </style>
 </head>
@@ -85,7 +72,7 @@
     <header>
       <div>
         <h1>Universal B2B Billing App</h1>
-        <p class="lead">Global B2B ready — accurate calculations, robust print & high‑quality PDF</p>
+        <p class="lead">Global-ready invoice generator — accurate math, robust print & high-quality PDF</p>
       </div>
       <div class="flex">
         <button id="toggleHistory" class="btn ghost" aria-expanded="false">Invoice History</button>
@@ -101,15 +88,15 @@
           <input id="companyName" type="text" placeholder="Seller name">
         </div>
         <div class="col">
-          <label for="sellerState">Seller State</label>
-          <select id="sellerState"></select>
+          <label for="sellerCountry">Seller Country</label>
+          <select id="sellerCountry"></select>
         </div>
       </div>
 
       <div class="row" style="margin-top:8px">
         <div class="col">
-          <label for="companyMeta">Seller Address / GSTIN</label>
-          <input id="companyMeta" type="text" placeholder="Address • GSTIN (optional)">
+          <label for="companyMeta">Seller Address / Tax ID</label>
+          <input id="companyMeta" type="text" placeholder="Address • Tax ID (optional)">
         </div>
         <div class="col">
           <label for="swift">Seller SWIFT / BIC</label>
@@ -123,15 +110,15 @@
           <input id="clientName" type="text" placeholder="Client name">
         </div>
         <div class="col">
-          <label for="clientState">Client State</label>
-          <select id="clientState"></select>
+          <label for="clientCountry">Client Country</label>
+          <select id="clientCountry"></select>
         </div>
       </div>
 
       <div style="margin-top:8px" class="row">
         <div class="col">
-          <label for="clientMeta">Client Address / GSTIN</label>
-          <input id="clientMeta" type="text" placeholder="Client address • GSTIN (optional)">
+          <label for="clientMeta">Client Address / Tax ID</label>
+          <input id="clientMeta" type="text" placeholder="Client address • Tax ID (optional)">
         </div>
         <div class="col">
           <label for="iban">Client IBAN</label>
@@ -169,10 +156,10 @@
 
       <div style="margin-top:12px">
         <label for="bankDetails">Bank / Payment Details (Account, IFSC)</label>
-        <textarea id="bankDetails" placeholder="Bank name • A/C • IFSC"></textarea>
+        <textarea id="bankDetails" placeholder="Bank name • A/C • SWIFT/IBAN"></textarea>
       </div>
 
-      <h3 style="margin-top:12px;margin-bottom:6px">Line Items (HSN/SAC & UOM)</h3>
+      <h3 style="margin-top:12px;margin-bottom:6px">Line Items (HSN/SAC, UOM, Discount)</h3>
       <div class="items" id="itemsContainer" aria-live="polite">
         <header>
           <div>Description</div>
@@ -202,7 +189,7 @@
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div>
           <h2 style="margin:0">Summary</h2>
-          <div class="muted" style="font-size:13px;margin-top:6px">Net totals & tax breakdown</div>
+          <div class="muted" style="font-size:13px;margin-top:6px">Net totals & tax breakdown (configurable)</div>
         </div>
         <div class="flex">
           <button id="printBtn" class="btn primary">Print</button>
@@ -212,9 +199,32 @@
 
       <div style="margin-top:12px" class="summary">
         <div class="line"><span>Subtotal</span><span id="subtotal">₹0.00</span></div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
+          <label style="font-size:13px;color:var(--muted);margin-right:8px">Tax Type</label>
+          <select id="taxType" style="padding:8px;border-radius:6px;border:1px solid #e6e9ef">
+            <option value="GST">GST</option>
+            <option value="VAT">VAT</option>
+            <option value="SalesTax">Sales Tax</option>
+            <option value="None">None</option>
+          </select>
+          <label style="font-size:13px;color:var(--muted);margin-left:12px">Rate (%)</label>
+          <input id="taxRate" type="number" min="0" step="0.01" value="18" style="width:90px;padding:8px;border-radius:6px;border:1px solid #e6e9ef;margin-left:8px">
+        </div>
         <div class="line" id="taxLine"><span id="taxLabel">Tax</span><span id="taxAmount">₹0.00</span></div>
         <div class="line total"><span>Grand Total</span><span id="grandTotal">₹0.00</span></div>
         <div class="line"><span>In words</span><span id="amountWords" class="muted"></span></div>
+      </div>
+
+      <div style="margin-top:12px">
+        <label for="currency">Currency</label>
+        <select id="currency">
+          <option value="INR" selected>INR ₹</option>
+          <option value="USD">USD $</option>
+          <option value="EUR">EUR €</option>
+          <option value="GBP">GBP £</option>
+          <option value="AED">AED د.إ</option>
+          <option value="SGD">SGD $</option>
+        </select>
       </div>
 
       <div style="margin-top:12px">
@@ -238,7 +248,7 @@
       <div class="preview">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <h2 style="margin:0">Invoice Preview</h2>
-          <div class="small muted">What you see here will print / download exactly</div>
+          <div class="small muted">Preview = Print / PDF output</div>
         </div>
 
         <div class="invoice" id="invoicePreview" role="document" aria-label="Invoice preview">
@@ -268,10 +278,10 @@
               <div class="meta" id="previewClientMeta"></div>
             </div>
             <div style="text-align:right">
-              <div class="small muted">Seller State</div>
-              <div id="previewSellerState" class="meta"></div>
-              <div class="small muted" style="margin-top:6px">Client State</div>
-              <div id="previewClientState" class="meta"></div>
+              <div class="small muted">Seller Country</div>
+              <div id="previewSellerCountry" class="meta"></div>
+              <div class="small muted" style="margin-top:6px">Client Country</div>
+              <div id="previewClientCountry" class="meta"></div>
             </div>
           </div>
 
@@ -331,29 +341,32 @@
 
 <script>
 /* ============================
-   Universal B2B Billing App — Final Stable Version
-   - Global B2B features
-   - Fixed: PDF blur (high DPI, devicePixelRatio aware), row-safe slicing (no cut rows)
-   - Fixed: Print button robust (wait fonts/images, clone + inline styles)
-   - Accurate math: Subtotal = sum of (price * qty - discount)
-   - GST logic: IGST vs CGST+SGST
-   - Local DB: savedInvoices in localStorage with import/export
-   - HSN/SAC, UOM, SWIFT/BIC, IBAN, Amount in words, Authorized Signatory
+   Global B2B Billing App — JS
+   - Make global: country, currency, tax type configurable
+   - Fix PDF blur: use devicePixelRatio, high-quality smoothing, wait fonts
+   - Fix row-cut: slice canvas at row boundaries
+   - LocalStorage history
    ============================ */
 
+/* Helpers */
 const $ = id => document.getElementById(id);
 const itemsContainer = $('itemsContainer');
 let logoDataUrl = null;
 
-/* Populate states (India + generic) */
-const STATES = ["Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat","Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram","Nagaland","Odisha","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand","West Bengal","Delhi","Puducherry","Other"];
-function populateStateSelects(){ const s=$('sellerState'), c=$('clientState'); STATES.forEach(st=>{ const o=document.createElement('option'); o.value=st; o.textContent=st; s.appendChild(o); const o2=o.cloneNode(true); c.appendChild(o2); }); s.value='Uttar Pradesh'; c.value='Delhi'; }
-populateStateSelects();
+/* Countries list (representative; extendable) */
+const COUNTRIES = ["India","United States","United Kingdom","United Arab Emirates","Singapore","Germany","France","Australia","Canada","Other"];
+function populateCountrySelects(){
+  const s = $('sellerCountry'), c = $('clientCountry');
+  COUNTRIES.forEach(ct => { const o=document.createElement('option'); o.value=ct; o.textContent=ct; s.appendChild(o); const o2=o.cloneNode(true); c.appendChild(o2); });
+  s.value = 'India'; c.value = 'United States';
+}
+populateCountrySelects();
 
+/* Escape HTML */
 function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-/* Create item row */
-function createItemRow(data={}) {
+/* Create item row (includes optional discount field if needed later) */
+function createItemRow(data = {}){
   const {desc='', hsn='', uom='Pcs', qty=1, unitPrice=0, discount=0} = data;
   const row = document.createElement('div');
   row.className = 'item-row';
@@ -366,11 +379,11 @@ function createItemRow(data={}) {
     <div class="rowTotal" aria-hidden="true">${formatMoney((unitPrice*qty)-discount)}</div>
     <button class="remove" title="Remove">✕</button>
   `;
-  row.querySelector('.remove').addEventListener('click', ()=>{ row.remove(); updateAll(); });
-  ['desc','hsn','uom','qty','price'].forEach(cls=>{
+  row.querySelector('.remove').addEventListener('click', () => { row.remove(); updateAll(); });
+  ['desc','hsn','uom','qty','price'].forEach(cls => {
     const el = row.querySelector('.'+cls);
     if(el) el.addEventListener('input', updateAll);
-    if(el && el.tagName==='SELECT') el.addEventListener('change', updateAll);
+    if(el && el.tagName === 'SELECT') el.addEventListener('change', updateAll);
   });
   itemsContainer.appendChild(row);
   return row;
@@ -379,13 +392,13 @@ function createItemRow(data={}) {
 /* Gather items and compute row totals */
 function gatherItems(){
   const rows = [...itemsContainer.querySelectorAll('.item-row')];
-  return rows.map(r=>{
+  return rows.map(r => {
     const desc = r.querySelector('.desc').value.trim();
     const hsn = r.querySelector('.hsn').value.trim();
     const uom = r.querySelector('.uom').value;
     const qty = parseFloat(r.querySelector('.qty').value) || 0;
     const unitPrice = parseFloat(r.querySelector('.price').value) || 0;
-    const discount = 0; // extendable
+    const discount = 0;
     const rowTotal = Math.round(((unitPrice * qty) - discount) * 100) / 100;
     return {desc, hsn, uom, qty, unitPrice, discount, rowTotal};
   }).filter(i => i.desc || i.unitPrice || i.qty);
@@ -398,37 +411,43 @@ function formatMoney(value){
   catch(e){ return (cur+' '+(Number(value)||0).toFixed(2)); }
 }
 
-/* Totals & tax logic */
+/* Tax & totals logic (global) */
 function calculateTotals(){
   const items = gatherItems();
   let subtotal = 0;
-  items.forEach(it => subtotal += Number(it.rowTotal || 0));
+  items.forEach(it => { subtotal += Number(it.rowTotal || 0); });
   subtotal = Math.round(subtotal * 100) / 100;
 
-  const taxRate = parseFloat($('taxRate') ? $('taxRate').value : 18) || 18;
-  const sellerState = $('sellerState').value;
-  const clientState = $('clientState').value;
-  const interState = sellerState !== clientState;
+  const taxType = $('taxType').value || 'GST';
+  const taxRate = parseFloat($('taxRate').value) || 0;
+  const sellerCountry = $('sellerCountry').value;
+  const clientCountry = $('clientCountry').value;
+  const crossBorder = sellerCountry !== clientCountry;
 
-  let taxBreakdown = [], taxAmount = 0;
-  if (taxRate > 0){
-    if (interState){
+  let taxBreakdown = [];
+  let taxAmount = 0;
+
+  if (taxType !== 'None' && taxRate > 0){
+    if (crossBorder){
+      // Cross-border: single tax label (e.g., IGST / Import VAT)
       taxAmount = Math.round(subtotal * (taxRate/100) * 100) / 100;
-      taxBreakdown.push({label:`IGST ${taxRate}%`, amount: taxAmount});
+      taxBreakdown.push({label:`Cross‑border ${taxType} ${taxRate}%`, amount: taxAmount});
     } else {
+      // Intra-country: split into two halves for jurisdictions that require split (e.g., CGST+SGST)
       const half = Math.round((taxRate/2) * 100) / 100;
-      const cgst = Math.round(subtotal * (half/100) * 100) / 100;
-      const sgst = Math.round(subtotal * (half/100) * 100) / 100;
-      taxAmount = Math.round((cgst + sgst) * 100) / 100;
-      taxBreakdown.push({label:`CGST ${half}%`, amount: cgst});
-      taxBreakdown.push({label:`SGST ${half}%`, amount: sgst});
+      const partA = Math.round(subtotal * (half/100) * 100) / 100;
+      const partB = Math.round(subtotal * (half/100) * 100) / 100;
+      taxAmount = Math.round((partA + partB) * 100) / 100;
+      taxBreakdown.push({label:`Local ${taxType} ${half}%`, amount: partA});
+      taxBreakdown.push({label:`Local ${taxType} ${half}%`, amount: partB});
     }
   }
+
   const grandTotal = Math.round((subtotal + taxAmount) * 100) / 100;
-  return {items, subtotal, taxBreakdown, taxAmount, grandTotal, interState, taxRate};
+  return {items, subtotal, taxBreakdown, taxAmount, grandTotal, crossBorder, taxType, taxRate};
 }
 
-/* Update UI & preview */
+/* Update preview & UI */
 function updateAll(){
   $('previewCompany').textContent = $('companyName').value || '';
   $('previewCompanyMeta').textContent = $('companyMeta').value || '';
@@ -441,13 +460,13 @@ function updateAll(){
   $('previewBank').textContent = $('bankDetails').value || '';
   $('previewStatus').textContent = $('status').value || '';
 
-  $('previewSellerState').textContent = $('sellerState').value || '';
-  $('previewClientState').textContent = $('clientState').value || '';
+  $('previewSellerCountry').textContent = $('sellerCountry').value || '';
+  $('previewClientCountry').textContent = $('clientCountry').value || '';
 
   const {items, subtotal, taxBreakdown, taxAmount, grandTotal} = calculateTotals();
 
   const tbody = $('invBody'); tbody.innerHTML = '';
-  items.forEach(it=>{
+  items.forEach(it => {
     const tr = document.createElement('tr');
     tr.innerHTML = `<td>${escapeHtml(it.desc)}<div class="muted" style="font-size:12px">HSN/SAC: ${escapeHtml(it.hsn)}</div></td>
                     <td>${escapeHtml(it.hsn)}</td>
@@ -472,25 +491,33 @@ function updateAll(){
     $('pTaxLine').style.display = 'block';
     $('taxAmount').textContent = formatMoney(taxAmount);
     $('pTax').textContent = formatMoney(taxAmount);
-    $('taxLabel').textContent = taxBreakdown.map(tb=>tb.label).join(' + ');
+    $('taxLabel').textContent = taxBreakdown.map(tb => tb.label).join(' + ');
     $('pTaxLine').querySelector('span').textContent = formatMoney(taxAmount);
   }
 
   $('grandTotal').textContent = formatMoney(grandTotal);
   $('pTotal').textContent = formatMoney(grandTotal);
+
   $('amountWords').textContent = amountToWords(grandTotal, $('currency') ? $('currency').value : 'INR');
 
   const logoEl = $('logoPreview');
-  if (logoDataUrl){ logoEl.style.backgroundImage = `url(${logoDataUrl})`; logoEl.style.backgroundSize='cover'; logoEl.style.backgroundPosition='center'; logoEl.textContent=''; }
-  else { logoEl.style.backgroundImage=''; logoEl.textContent='LI'; }
+  if (logoDataUrl){
+    logoEl.style.backgroundImage = `url(${logoDataUrl})`;
+    logoEl.style.backgroundSize = 'cover';
+    logoEl.style.backgroundPosition = 'center';
+    logoEl.textContent = '';
+  } else {
+    logoEl.style.backgroundImage = '';
+    logoEl.textContent = 'LI';
+  }
 
-  [...itemsContainer.querySelectorAll('.item-row')].forEach((r, idx)=>{
+  [...itemsContainer.querySelectorAll('.item-row')].forEach((r, idx) => {
     const rt = r.querySelector('.rowTotal');
     if (rt && items[idx]) rt.textContent = formatMoney(items[idx].rowTotal);
   });
 }
 
-/* Amount to words */
+/* Amount to words (simple, supports INR and generic currency label) */
 function numberToWords(num){
   if (num === 0) return 'zero';
   const a = ['','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
@@ -521,146 +548,280 @@ function amountToWords(amount, currency='INR'){
 }
 function capitalize(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
 
-/* Local DB */
-function readSavedInvoices(){ try { const raw = localStorage.getItem('savedInvoices'); if(!raw) return []; return JSON.parse(raw); } catch(e){ console.error(e); return []; } }
-function writeSavedInvoices(arr){ try { localStorage.setItem('savedInvoices', JSON.stringify(arr)); } catch(e){ console.error(e); } }
+/* Local DB (localStorage) helpers */
+function readSavedInvoices(){
+  try { const raw = localStorage.getItem('savedInvoices'); if (!raw) return []; return JSON.parse(raw); } catch(e){ console.error(e); return []; }
+}
+function writeSavedInvoices(arr){
+  try { localStorage.setItem('savedInvoices', JSON.stringify(arr)); } catch(e){ console.error(e); }
+}
 
+/* Build payload for save/export */
 function buildPayload(){
   const {items, subtotal, taxBreakdown, taxAmount, grandTotal} = calculateTotals();
   return {
-    id:null, invoiceNo:$('invoiceNo').value||'', companyName:$('companyName').value||'', companyMeta:$('companyMeta').value||'',
-    sellerState:$('sellerState').value||'', clientName:$('clientName').value||'', clientMeta:$('clientMeta').value||'', clientState:$('clientState').value||'',
-    invoiceDate:$('invoiceDate').value||'', dueDate:$('dueDate').value||'', paymentTerms:$('paymentTerms').value||'', bankDetails:$('bankDetails').value||'',
-    swift:$('swift').value||'', iban:$('iban').value||'', items, subtotal, taxBreakdown, taxAmount, grandTotal, notes:$('notes').value||'', status:$('status').value||'', logo:logoDataUrl||null, savedAt:new Date().toISOString()
+    id: null,
+    invoiceNo: $('invoiceNo').value || '',
+    companyName: $('companyName').value || '',
+    companyMeta: $('companyMeta').value || '',
+    sellerCountry: $('sellerCountry').value || '',
+    clientName: $('clientName').value || '',
+    clientMeta: $('clientMeta').value || '',
+    clientCountry: $('clientCountry').value || '',
+    invoiceDate: $('invoiceDate').value || '',
+    dueDate: $('dueDate').value || '',
+    paymentTerms: $('paymentTerms').value || '',
+    bankDetails: $('bankDetails').value || '',
+    swift: $('swift').value || '',
+    iban: $('iban').value || '',
+    items,
+    subtotal, taxBreakdown, taxAmount, grandTotal,
+    notes: $('notes').value || '',
+    status: $('status').value || '',
+    currency: $('currency').value || 'INR',
+    taxType: $('taxType').value || 'GST',
+    taxRate: parseFloat($('taxRate').value) || 0,
+    logo: logoDataUrl || null,
+    savedAt: new Date().toISOString()
   };
 }
 
-/* Save / History */
-$('saveRecord').addEventListener('click', ()=>{
-  try{
+/* Save record */
+$('saveRecord').addEventListener('click', () => {
+  try {
     const payload = buildPayload();
     const saved = readSavedInvoices();
     const id = 'inv_' + Date.now();
     payload.id = id;
-    saved.unshift({id, invoiceNo: payload.invoiceNo || id, clientName: payload.clientName || '', total: payload.grandTotal || 0, savedAt: payload.savedAt, payload});
+    saved.unshift({ id, invoiceNo: payload.invoiceNo || id, clientName: payload.clientName || '', total: payload.grandTotal || 0, savedAt: payload.savedAt, payload });
     writeSavedInvoices(saved);
     renderHistoryList();
-    alert('Invoice saved locally ('+id+').');
-  } catch(e){ console.error(e); alert('Save failed.'); }
+    alert('Invoice saved locally (' + id + ').');
+  } catch (err) {
+    console.error('Save record error', err);
+    alert('Save failed.');
+  }
 });
 
+/* Render history list */
 function renderHistoryList(){
   const list = $('historyList'); list.innerHTML = '';
   const saved = readSavedInvoices();
-  if(!saved.length){ list.innerHTML = '<div class="muted" style="padding:8px">No saved invoices</div>'; return; }
-  saved.forEach(rec=>{
-    const div = document.createElement('div'); div.className='history-item';
-    div.innerHTML = `<div><div style="font-weight:600">${escapeHtml(rec.invoiceNo)}</div><div class="meta">${escapeHtml(rec.clientName)} • ${formatMoney(rec.total)}</div></div>
+  if (!saved.length){
+    list.innerHTML = '<div class="muted" style="padding:8px">No saved invoices</div>';
+    return;
+  }
+  saved.forEach(rec => {
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    div.innerHTML = `<div>
+        <div style="font-weight:600">${escapeHtml(rec.invoiceNo)}</div>
+        <div class="meta">${escapeHtml(rec.clientName)} • ${formatMoney(rec.total)}</div>
+      </div>
       <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
         <button class="btn ghost load" data-id="${rec.id}">Load</button>
         <button class="btn" style="background:#f8d7da;color:#842029;border-radius:6px;padding:6px 8px" data-id="${rec.id}">Delete</button>
       </div>`;
     list.appendChild(div);
   });
-  list.querySelectorAll('button.load').forEach(b=>b.addEventListener('click', e=>{ loadInvoiceById(e.currentTarget.dataset.id); $('historyPanel').style.display='none'; $('toggleHistory').setAttribute('aria-expanded','false'); }));
-  list.querySelectorAll('button[style]').forEach(b=>b.addEventListener('click', e=>{ const id=e.currentTarget.dataset.id; if(!confirm('Delete this saved invoice?')) return; deleteInvoiceById(id); }));
+
+  list.querySelectorAll('button.load').forEach(b => b.addEventListener('click', (e) => {
+    const id = e.currentTarget.dataset.id;
+    loadInvoiceById(id);
+    $('historyPanel').style.display = 'none';
+    $('toggleHistory').setAttribute('aria-expanded','false');
+  }));
+  list.querySelectorAll('button[style]').forEach(b => b.addEventListener('click', (e) => {
+    const id = e.currentTarget.dataset.id;
+    if (!confirm('Delete this saved invoice?')) return;
+    deleteInvoiceById(id);
+  }));
 }
-function loadInvoiceById(id){ const saved = readSavedInvoices(); const rec = saved.find(r=>r.id===id); if(!rec){ alert('Not found'); return; } applyPayload(rec.payload); alert('Loaded '+rec.invoiceNo); }
-function deleteInvoiceById(id){ let saved = readSavedInvoices(); saved = saved.filter(r=>r.id!==id); writeSavedInvoices(saved); renderHistoryList(); }
+
+/* Load / Delete */
+function loadInvoiceById(id){
+  const saved = readSavedInvoices();
+  const rec = saved.find(r => r.id === id);
+  if (!rec) { alert('Saved invoice not found'); return; }
+  applyPayload(rec.payload);
+  alert('Loaded invoice: ' + rec.invoiceNo);
+}
+function deleteInvoiceById(id){
+  let saved = readSavedInvoices();
+  saved = saved.filter(r => r.id !== id);
+  writeSavedInvoices(saved);
+  renderHistoryList();
+}
 
 /* Export / Import */
-$('exportAllSaved').addEventListener('click', ()=>{
+$('exportAllSaved').addEventListener('click', () => {
   const saved = readSavedInvoices();
   const blob = new Blob([JSON.stringify(saved, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download='savedInvoices_backup_'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.json';
+  const a = document.createElement('a'); a.href = url; a.download = 'savedInvoices_backup_' + new Date().toISOString().slice(0,19).replace(/[:T]/g,'-') + '.json';
   document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 });
-$('importSaved').addEventListener('click', ()=>$('importFile').click());
-$('importFile').addEventListener('change', e=>{
-  const f = e.target.files[0]; if(!f) return;
+$('importSaved').addEventListener('click', () => { $('importFile').click(); });
+$('importFile').addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if(!f) return;
   const reader = new FileReader();
-  reader.onload = ()=>{
-    try{ const arr = JSON.parse(reader.result); if(!Array.isArray(arr)) throw new Error('Invalid'); writeSavedInvoices(arr); renderHistoryList(); alert('Imported '+arr.length+' records.'); } catch(err){ console.error(err); alert('Import failed.'); }
+  reader.onload = () => {
+    try {
+      const arr = JSON.parse(reader.result);
+      if (!Array.isArray(arr)) throw new Error('Invalid backup format');
+      writeSavedInvoices(arr);
+      renderHistoryList();
+      alert('Imported ' + arr.length + ' records.');
+    } catch(err){
+      console.error('Import error', err);
+      alert('Import failed: invalid file.');
+    }
   };
   reader.readAsText(f);
 });
 
 /* Reset */
 function resetAll(){
-  ['companyName','companyMeta','clientName','clientMeta','invoiceNo','invoiceDate','dueDate','paymentTerms','bankDetails','swift','iban','notes','status'].forEach(id=>{ const el=$(id); if(el){ if(el.tagName==='SELECT') el.selectedIndex=0; else el.value=''; }});
-  $('sellerState').value='Uttar Pradesh'; $('clientState').value='Delhi'; logoDataUrl=null; itemsContainer.innerHTML=''; createItemRow({desc:'', hsn:'', uom:'Pcs', qty:1, unitPrice:0}); updateAll();
+  const fields = ['companyName','companyMeta','clientName','clientMeta','invoiceNo','invoiceDate','dueDate','paymentTerms','bankDetails','swift','iban','notes','status'];
+  fields.forEach(id => { const el = $(id); if(el){ if(el.tagName === 'SELECT') el.selectedIndex = 0; else el.value = ''; } });
+  $('sellerCountry').value = 'India';
+  $('clientCountry').value = 'United States';
+  logoDataUrl = null;
+  if (itemsContainer) itemsContainer.innerHTML = '';
+  createItemRow({desc:'', hsn:'', uom:'Pcs', qty:1, unitPrice:0});
+  updateAll();
 }
-(function(){ const btn=$('resetBtn'); if(!btn) return; const clone=btn.cloneNode(true); btn.parentNode.replaceChild(clone, btn); clone.addEventListener('click', ()=>{ if(!confirm('Reset all fields?')) return; resetAll(); }); })();
+(function attachReset(){
+  const btn = $('resetBtn');
+  if (!btn) return;
+  const clone = btn.cloneNode(true);
+  btn.parentNode.replaceChild(clone, btn);
+  clone.addEventListener('click', () => {
+    if (!confirm('Reset all fields? This will clear the form but will not delete saved invoices.')) return;
+    resetAll();
+  });
+})();
 
 /* Export single invoice JSON */
-$('downloadJson').addEventListener('click', ()=>{
+$('downloadJson').addEventListener('click', () => {
   const payload = buildPayload();
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download=(payload.invoiceNo||'invoice')+'.json';
+  const a = document.createElement('a'); a.href = url; a.download = (payload.invoiceNo || 'invoice') + '.json';
   document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 });
 
-/* Apply payload */
+/* Apply payload into form */
 function applyPayload(p){
   if(!p) return;
-  $('companyName').value=p.companyName||''; $('companyMeta').value=p.companyMeta||''; $('sellerState').value=p.sellerState||'Uttar Pradesh';
-  $('clientName').value=p.clientName||''; $('clientMeta').value=p.clientMeta||''; $('clientState').value=p.clientState||'Delhi';
-  $('invoiceNo').value=p.invoiceNo||''; $('invoiceDate').value=p.invoiceDate||''; $('dueDate').value=p.dueDate||'';
-  $('paymentTerms').value=p.paymentTerms||'Net 30'; $('bankDetails').value=p.bankDetails||''; $('swift').value=p.swift||''; $('iban').value=p.iban||'';
-  $('notes').value=p.notes||''; $('status').value=p.status||'Unpaid'; logoDataUrl=p.logo||null;
-  itemsContainer.innerHTML=''; (p.items||[]).forEach(it=>createItemRow({desc:it.desc, hsn:it.hsn, uom:it.uom, qty:it.qty, unitPrice:it.unitPrice}));
+  $('companyName').value = p.companyName || '';
+  $('companyMeta').value = p.companyMeta || '';
+  $('sellerCountry').value = p.sellerCountry || 'India';
+  $('clientName').value = p.clientName || '';
+  $('clientMeta').value = p.clientMeta || '';
+  $('clientCountry').value = p.clientCountry || 'United States';
+  $('invoiceNo').value = p.invoiceNo || '';
+  $('invoiceDate').value = p.invoiceDate || '';
+  $('dueDate').value = p.dueDate || '';
+  $('paymentTerms').value = p.paymentTerms || 'Net 30';
+  $('bankDetails').value = p.bankDetails || '';
+  $('swift').value = p.swift || '';
+  $('iban').value = p.iban || '';
+  $('notes').value = p.notes || '';
+  $('status').value = p.status || 'Unpaid';
+  $('currency').value = p.currency || 'INR';
+  $('taxType').value = p.taxType || 'GST';
+  $('taxRate').value = p.taxRate || 0;
+  logoDataUrl = p.logo || null;
+  itemsContainer.innerHTML = '';
+  (p.items || []).forEach(it => createItemRow({desc:it.desc, hsn:it.hsn, uom:it.uom, qty:it.qty, unitPrice:it.unitPrice}));
   updateAll();
 }
 
-/* Print: robust clone, wait for fonts/images, then open print window */
+/* Print: robust clone + wait fonts/images then open print window */
 (function(){
-  function copyComputedStyles(src, tgt){
-    const s = window.getComputedStyle(src);
+  function copyComputedStyles(source, target){
+    const s = window.getComputedStyle(source);
     let cssText = '';
-    for(let i=0;i<s.length;i++){ const prop=s[i]; try{ cssText += `${prop}:${s.getPropertyValue(prop)};`; }catch(e){} }
-    tgt.style.cssText = cssText;
-    const sc = src.children || [], tc = tgt.children || [];
-    for(let i=0;i<sc.length;i++){ if(tc[i]) copyComputedStyles(sc[i], tc[i]); }
+    for (let i = 0; i < s.length; i++){
+      const prop = s[i];
+      try { cssText += `${prop}:${s.getPropertyValue(prop)};`; } catch(e){}
+    }
+    target.style.cssText = cssText;
+    const srcChildren = source.children || [];
+    const tgtChildren = target.children || [];
+    for (let i = 0; i < srcChildren.length; i++){
+      if (tgtChildren[i]) copyComputedStyles(srcChildren[i], tgtChildren[i]);
+    }
   }
 
-  const btn = $('printBtn');
-  if(!btn) return;
-  btn.addEventListener('click', async ()=>{
-    try{
-      if(typeof updateAll==='function') updateAll();
+  const printBtn = $('printBtn');
+  if (!printBtn) return;
+  printBtn.addEventListener('click', async () => {
+    try {
+      if (typeof updateAll === 'function') updateAll();
       try { await document.fonts.ready; } catch(e){}
-      await new Promise(r=>setTimeout(r, 220));
+      await new Promise(r => setTimeout(r, 220));
 
       const preview = $('invoicePreview');
-      if(!preview){ alert('Invoice preview not found.'); return; }
+      if (!preview) { alert('Invoice preview not found.'); return; }
+
       const clone = preview.cloneNode(true);
       copyComputedStyles(preview, clone);
 
       let styleSheetsText = '';
-      Array.from(document.styleSheets).forEach(ss=>{
-        try{ styleSheetsText += Array.from(ss.cssRules||[]).map(r=>r.cssText).join('\n'); } catch(e){}
+      Array.from(document.styleSheets).forEach(ss => {
+        try { styleSheetsText += Array.from(ss.cssRules || []).map(r => r.cssText).join('\n'); } catch(e){}
       });
 
-      const docHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Print Invoice</title><style>${styleSheetsText} html,body{margin:0;padding:0;background:#fff;color:#000;font-family:inherit} #invoicePreview{box-sizing:border-box;padding:20px;width:100%} table{width:100%;border-collapse:collapse} th,td{padding:8px;border-bottom:1px solid #eee;text-align:left} tr{page-break-inside:avoid} img{max-width:100%;height:auto}</style></head><body><div id="invoicePreview">${clone.innerHTML}</div><script>function doPrint(){ setTimeout(()=>{ window.print(); }, 120); } if(document.readyState==='complete') doPrint(); else window.onload=doPrint;<\/script></body></html>`;
+      const docHtml = `
+        <!doctype html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <title>Print Invoice</title>
+            <style>
+              ${styleSheetsText}
+              html,body{margin:0;padding:0;background:#fff;color:#000;font-family:inherit}
+              #invoicePreview{box-sizing:border-box;padding:20px;width:100%}
+              table{width:100%;border-collapse:collapse}
+              th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}
+              tr{page-break-inside:avoid}
+              img{max-width:100%;height:auto}
+            </style>
+          </head>
+          <body>
+            <div id="invoicePreview">${clone.innerHTML}</div>
+            <script>
+              function doPrint(){ setTimeout(()=>{ window.print(); }, 120); }
+              if (document.readyState === 'complete') doPrint(); else window.onload = doPrint;
+            <\/script>
+          </body>
+        </html>
+      `;
 
       const w = window.open('', '_blank');
-      if(!w){ alert('Popup blocked. Allow popups for this site or use Download PDF.'); return; }
+      if (!w) { alert('Popup blocked. Allow popups for this site or use Download PDF.'); return; }
       w.document.open(); w.document.write(docHtml); w.document.close();
-    }catch(err){ console.error('Print error', err); alert('Print failed.'); }
+    } catch (err) {
+      console.error('Print error:', err);
+      alert('Print failed. Try Download PDF or refresh the page.');
+    }
   });
 })();
 
 /* PDF generation: high DPI + devicePixelRatio + row-safe slicing to avoid blur and cut rows */
 async function generatePdfFromElement(element, filename){
   try { await document.fonts.ready; } catch(e){}
-  await new Promise(r=>setTimeout(r, 140));
+  await new Promise(r => setTimeout(r, 140));
 
   const isMobile = /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth < 700;
   const deviceDPR = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
   const scale = isMobile ? Math.min(1.4, deviceDPR * 1.2) : Math.min(3.0, deviceDPR * 1.8);
 
+  // Compute preview rect and row offsets (CSS px)
   const previewRect = element.getBoundingClientRect();
   const rowEls = Array.from(document.querySelectorAll('#invBody tr'));
   const rowOffsets = rowEls.map(r => {
@@ -668,6 +829,7 @@ async function generatePdfFromElement(element, filename){
     return Math.max(0, rRect.top - previewRect.top);
   });
 
+  // Render canvas
   const originalWidth = element.offsetWidth;
   element.style.width = originalWidth + 'px';
 
@@ -681,13 +843,10 @@ async function generatePdfFromElement(element, filename){
     windowHeight: document.documentElement.clientHeight
   });
 
-  // Improve canvas rendering quality
-  try {
-    const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-  } catch(e){}
+  // Improve canvas smoothing
+  try { const ctx = canvas.getContext('2d'); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; } catch(e){}
 
+  // Convert row offsets to canvas px
   const canvasScale = canvas.width / element.getBoundingClientRect().width;
   const canvasRowOffsets = rowOffsets.map(o => Math.round(o * canvasScale));
 
@@ -727,7 +886,6 @@ async function generatePdfFromElement(element, filename){
     pageCanvas.height = sliceHeight;
     pageCtx.clearRect(0,0,pageCanvas.width,pageCanvas.height);
     pageCtx.drawImage(canvas, 0, position, canvasWidth, sliceHeight, 0, 0, canvasWidth, sliceHeight);
-    // Improve smoothing
     try { pageCtx.imageSmoothingEnabled = true; pageCtx.imageSmoothingQuality = 'high'; } catch(e){}
     const pageData = pageCanvas.toDataURL('image/png', 1.0);
     const pageImgHeightPt = sliceHeight * pxToPt;
@@ -743,23 +901,30 @@ async function generatePdfFromElement(element, filename){
 /* Download PDF button */
 (function(){
   const btn = $('downloadPdfBtn');
-  if(!btn) return;
-  btn.addEventListener('click', async ()=>{
-    try{
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    try {
       btn.disabled = true;
-      const orig = btn.textContent; btn.textContent = 'Generating...';
-      if(typeof updateAll==='function') updateAll();
-      await new Promise(r=>setTimeout(r, 180));
+      const originalText = btn.textContent;
+      btn.textContent = 'Generating...';
+      if (typeof updateAll === 'function') updateAll();
+      await new Promise(r => setTimeout(r, 180));
       const preview = $('invoicePreview');
-      if(!preview){ alert('Invoice preview not found.'); btn.disabled=false; btn.textContent=orig; return; }
-      const filename = ($('invoiceNo') && $('invoiceNo').value) ? $('invoiceNo').value + '.pdf' : 'invoice.pdf';
+      if (!preview) { alert('Invoice preview not found.'); btn.disabled=false; btn.textContent=originalText; return; }
+      const invoiceNoEl = $('invoiceNo');
+      const filename = (invoiceNoEl && invoiceNoEl.value) ? invoiceNoEl.value + '.pdf' : 'invoice.pdf';
       await generatePdfFromElement(preview, filename);
-      btn.textContent = orig;
-    }catch(err){ console.error('PDF generation error', err); alert('PDF generation failed. Try Print.'); } finally { try{ btn.disabled=false; }catch(e){} }
+      btn.textContent = originalText || 'Download PDF';
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      alert('PDF generation failed. Try Print as an alternative.');
+    } finally {
+      try { btn.disabled = false; } catch(e){}
+    }
   });
 })();
 
-/* Init & wiring */
+/* Init */
 (function init(){
   $('invoiceDate').valueAsDate = new Date();
   const due = new Date(); due.setDate(due.getDate()+30); $('dueDate').valueAsDate = due;
@@ -767,32 +932,27 @@ async function generatePdfFromElement(element, filename){
   createItemRow({desc:'', hsn:'', uom:'Pcs', qty:1, unitPrice:0});
   updateAll();
 
-  // Tax control & currency
-  const taxControl = document.createElement('div'); taxControl.style.marginTop='8px';
-  taxControl.innerHTML = `<label style="font-size:13px;color:var(--muted)">Tax Rate (%)</label><input id="taxRate" type="number" min="0" step="0.01" value="18" style="width:100px;padding:8px;border-radius:6px;border:1px solid #e6e9ef">`;
-  document.querySelector('aside.card').insertBefore(taxControl, document.querySelector('aside.card').children[2]);
+  // Add currency selector and tax controls (already in DOM)
   $('taxRate').addEventListener('input', updateAll);
-
-  const curSel = document.createElement('div'); curSel.style.marginTop='8px';
-  curSel.innerHTML = `<label style="font-size:13px;color:var(--muted)">Currency</label><select id="currency" style="padding:8px;border-radius:6px;border:1px solid #e6e9ef"><option value="INR" selected>INR ₹</option><option value="USD">USD $</option><option value="EUR">EUR €</option><option value="GBP">GBP £</option></select>`;
-  document.querySelector('aside.card').insertBefore(curSel, document.querySelector('aside.card').children[3]);
+  $('taxType').addEventListener('change', updateAll);
   $('currency').addEventListener('change', updateAll);
 
-  $('addItem').addEventListener('click', e=>{ e.preventDefault(); createItemRow({desc:'', hsn:'', uom:'Pcs', qty:1, unitPrice:0}); updateAll(); });
-  $('addService').addEventListener('click', e=>{ e.preventDefault(); createItemRow({desc:'Consulting / Service', hsn:'9983', uom:'Hrs', qty:10, unitPrice:1500}); updateAll(); });
+  // Buttons
+  $('addItem').addEventListener('click', (e) => { e.preventDefault(); createItemRow({desc:'', hsn:'', uom:'Pcs', qty:1, unitPrice:0}); updateAll(); });
+  $('addService').addEventListener('click', (e) => { e.preventDefault(); createItemRow({desc:'Consulting / Service', hsn:'9983', uom:'Hrs', qty:10, unitPrice:1500}); updateAll(); });
 
-  document.querySelectorAll('input,textarea,select').forEach(el=>{ el.addEventListener('input', updateAll); el.addEventListener('change', updateAll); });
+  document.querySelectorAll('input,textarea,select').forEach(el => { el.addEventListener('input', updateAll); el.addEventListener('change', updateAll); });
 
   renderHistoryList();
-  setInterval(()=>{ try{ localStorage.setItem('luxinvoice_last_payload', JSON.stringify(buildPayload())); }catch(e){} }, 5000);
+  setInterval(()=>{ try { localStorage.setItem('luxinvoice_last_payload', JSON.stringify(buildPayload())); } catch(e){} }, 5000);
 })();
 
 /* History toggles */
-$('toggleHistory').addEventListener('click', ()=>{ const p=$('historyPanel'); const open = p.style.display!=='block'; p.style.display = open ? 'block' : 'none'; $('toggleHistory').setAttribute('aria-expanded', String(open)); renderHistoryList(); });
-$('closeHistory').addEventListener('click', ()=>{ $('historyPanel').style.display='none'; $('toggleHistory').setAttribute('aria-expanded','false'); });
-$('clearAllSaved').addEventListener('click', ()=>{ if(!confirm('Clear all saved invoices?')) return; writeSavedInvoices([]); renderHistoryList(); });
+$('toggleHistory').addEventListener('click', () => { const panel = $('historyPanel'); const expanded = panel.style.display !== 'block'; panel.style.display = expanded ? 'block' : 'none'; $('toggleHistory').setAttribute('aria-expanded', String(expanded)); renderHistoryList(); });
+$('closeHistory').addEventListener('click', () => { $('historyPanel').style.display = 'none'; $('toggleHistory').setAttribute('aria-expanded','false'); });
+$('clearAllSaved').addEventListener('click', () => { if (!confirm('Clear all saved invoices?')) return; writeSavedInvoices([]); renderHistoryList(); });
 
-/* Expose updateAll for external calls */
+/* Expose updateAll for debugging */
 window.updateAll = updateAll;
 </script>
 </body>
