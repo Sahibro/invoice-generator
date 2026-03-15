@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="hi">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Professional Invoice Generator — LuxInvoice</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Invoice Generator — Reset Fixed</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -55,15 +55,11 @@
   @media (max-width:900px){.wrap{grid-template-columns:1fr;padding:16px}.card{padding:14px}.items header, .item-row{grid-template-columns:1fr 100px 70px 70px 36px}}
   @media (max-width:640px){.items header, .item-row{grid-template-columns:1fr 90px 60px 60px 36px}.brand .logo{width:56px;height:56px;font-size:16px}}
 
-  /* PRINT FIX: hide interactive UI but keep invoice visible */
-  @media print{
-    body{background:#fff;padding:0}
-    /* hide controls and form elements */
+  /* PRINT FIX */
+  @media print {
     .controls, .btn, header p.lead, input, textarea, select, .items header, .item-row, .card > .controls { display: none !important; }
-    /* ensure invoice preview prints cleanly */
-    .invoice{box-shadow:none;border:none;border-radius:0;margin:0;padding:0;width:100%;background:#fff}
-    /* keep wrapper visible so invoice is printed */
-    .wrap{background:#fff}
+    #invoicePreview, .invoice { display: block !important; visibility: visible !important; position: relative !important; width:100% !important; box-shadow:none !important; border:none !important; margin:0 !important; padding:0.5in !important; background:#fff !important; }
+    * { color: #000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
 </style>
 </head>
@@ -80,34 +76,33 @@
       </div>
     </header>
 
-    <!-- Left: Form -->
     <section class="card" aria-label="Invoice form">
       <div class="form-group row">
         <div class="col">
           <label>Company Name</label>
-          <input id="companyName" type="text" placeholder="Your company name" value="Luxury Corp Pvt Ltd">
+          <input id="companyName" type="text" placeholder="Your company name" value="">
         </div>
         <div class="col">
-          <label>Company Tagline / Address</label>
-          <input id="companyMeta" type="text" placeholder="Address, phone, email" value="123 Elite Avenue, Lucknow • +91 98765 43210 • hello@luxury.com">
+          <label>Company Tagline Address</label>
+          <input id="companyMeta" type="text" placeholder="Address, phone, email" value="">
         </div>
       </div>
 
       <div class="form-group row">
         <div class="col">
           <label>Client Name</label>
-          <input id="clientName" type="text" placeholder="Client or company name" value="Client Co.">
+          <input id="clientName" type="text" placeholder="Client or company name" value="">
         </div>
         <div class="col">
-          <label>Client Address / Contact</label>
-          <input id="clientMeta" type="text" placeholder="Client address or contact" value="456 Business Park, Delhi • client@company.com">
+          <label>Client Address Contact</label>
+          <input id="clientMeta" type="text" placeholder="Client address or contact" value="">
         </div>
       </div>
 
       <div class="form-group row">
         <div class="col">
           <label>Invoice Number</label>
-          <input id="invoiceNo" type="text" placeholder="INV-2026-001" value="INV-2026-001">
+          <input id="invoiceNo" type="text" placeholder="INV-2026-001" value="">
         </div>
         <div class="col">
           <label>Issue Date</label>
@@ -126,7 +121,7 @@
             <option value="Due on receipt">Due on receipt</option>
             <option value="Net 7">Net 7</option>
             <option value="Net 15">Net 15</option>
-            <option value="Net 30" selected>Net 30</option>
+            <option value="Net 30">Net 30</option>
             <option value="Custom">Custom</option>
           </select>
         </div>
@@ -136,32 +131,32 @@
         <div style="flex:0 0 140px">
           <label>Currency</label>
           <select id="currency">
-            <option value="INR" selected>INR ₹</option>
+            <option value="INR">INR ₹</option>
             <option value="USD">USD $</option>
             <option value="EUR">EUR €</option>
             <option value="GBP">GBP £</option>
           </select>
         </div>
         <div style="flex:1">
-          <label>Tax / VAT (%)</label>
-          <input id="taxRate" type="number" min="0" step="0.01" value="18">
+          <label>Tax VAT %</label>
+          <input id="taxRate" type="number" min="0" step="0.01" value="0">
         </div>
       </div>
 
       <div class="form-group">
-        <label>Bank / Payment Details (for B2B)</label>
-        <textarea id="bankDetails">Bank: Elite Bank • A/C: 1234567890 • IFSC: ELIT0001234</textarea>
+        <label>Bank Payment Details</label>
+        <textarea id="bankDetails"></textarea>
       </div>
 
       <div class="form-group">
-        <label>Upload Logo (optional)</label>
+        <label>Upload Logo optional</label>
         <input id="logoInput" type="file" accept="image/*">
       </div>
 
       <h3 style="margin-top:6px;margin-bottom:8px">Line Items</h3>
       <div class="items" id="itemsContainer" aria-live="polite">
         <header>
-          <div>Description / Item code</div>
+          <div>Description Item code</div>
           <div>Unit Price</div>
           <div>Qty</div>
           <div>Discount</div>
@@ -181,7 +176,6 @@
       </div>
     </section>
 
-    <!-- Right: Summary & Actions -->
     <aside class="card" aria-label="Summary and actions">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div>
@@ -205,19 +199,18 @@
         <label>Invoice Status</label>
         <select id="status">
           <option>Draft</option>
-          <option selected>Unpaid</option>
+          <option>Unpaid</option>
           <option>Paid</option>
           <option>Overdue</option>
         </select>
       </div>
 
       <div style="margin-top:12px">
-        <label>Notes / Terms</label>
-        <textarea id="notes">Thank you for your business. Please make payment within the terms above.</textarea>
+        <label>Notes Terms</label>
+        <textarea id="notes"></textarea>
       </div>
     </aside>
 
-    <!-- Full-width Preview -->
     <section class="card" style="grid-column:1/-1">
       <div class="preview">
         <div style="display:flex;justify-content:space-between;align-items:center">
@@ -230,31 +223,31 @@
             <div class="brand">
               <div id="logoPreview" class="logo" aria-hidden="true">LI</div>
               <div>
-                <div id="previewCompany" style="font-weight:700;font-size:18px">Luxury Corp Pvt Ltd</div>
-                <div id="previewCompanyMeta" class="meta">123 Elite Avenue, Lucknow • +91 98765 43210 • hello@luxury.com</div>
+                <div id="previewCompany" style="font-weight:700;font-size:18px"></div>
+                <div id="previewCompanyMeta" class="meta"></div>
               </div>
             </div>
 
             <div style="text-align:right">
               <div style="font-size:13px;color:var(--muted)">Invoice</div>
-              <div style="font-weight:700;font-size:16px">No: <span id="previewInvNo">INV-2026-001</span></div>
+              <div style="font-weight:700;font-size:16px">No: <span id="previewInvNo"></span></div>
               <div class="meta">Issue: <span id="previewDate">-</span></div>
               <div class="meta">Due: <span id="previewDue">-</span></div>
-              <div class="meta">Status: <strong id="previewStatus">Unpaid</strong></div>
+              <div class="meta">Status: <strong id="previewStatus"></strong></div>
             </div>
           </div>
 
           <div style="display:flex;justify-content:space-between;margin-top:14px;gap:12px">
             <div>
               <div class="small muted">Bill To</div>
-              <div style="font-weight:600" id="previewClient">Client Co.</div>
-              <div class="meta" id="previewClientMeta">456 Business Park, Delhi • client@company.com</div>
+              <div style="font-weight:600" id="previewClient"></div>
+              <div class="meta" id="previewClientMeta"></div>
             </div>
             <div style="text-align:right">
               <div class="small muted">Payment Terms</div>
-              <div id="previewTerms">Net 30</div>
+              <div id="previewTerms"></div>
               <div style="margin-top:8px" class="small muted">Bank</div>
-              <div id="previewBank" class="meta">Bank: Elite Bank • A/C: 1234567890</div>
+              <div id="previewBank" class="meta"></div>
             </div>
           </div>
 
@@ -268,7 +261,7 @@
           <div class="inv-footer">
             <div style="max-width:60%">
               <div class="small muted">Notes</div>
-              <div id="previewNotes" class="small">Thank you for your business.</div>
+              <div id="previewNotes" class="small"></div>
             </div>
             <div style="text-align:right">
               <div class="small muted">Subtotal: <span id="pSubtotal">₹0.00</span></div>
@@ -285,15 +278,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
+/* Utility */
 const $ = id => document.getElementById(id);
-function currencyFormatter(code){ return new Intl.NumberFormat(undefined,{style:'currency',currency:code,maximumFractionDigits:2}); }
-function formatMoney(value){ const cur = $('currency').value || 'INR'; return currencyFormatter(cur).format(value || 0); }
-function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+/* Items management */
 const itemsContainer = $('itemsContainer');
 let logoDataUrl = null;
 
-function createItemRow(data={}) {
+function createItemRow(data = {}){
   const {desc='', unitPrice=0, qty=1, discount=0} = data;
   const row = document.createElement('div');
   row.className = 'item-row';
@@ -304,7 +296,7 @@ function createItemRow(data={}) {
     <input class="discount" type="number" min="0" step="0.01" value="${discount}" />
     <button class="remove" title="Remove">✕</button>
   `;
-  row.querySelector('.remove').addEventListener('click', ()=>{ row.remove(); updateAll(); });
+  row.querySelector('.remove').addEventListener('click', () => { row.remove(); updateAll(); });
   ['desc','price','qty','discount'].forEach(cls => row.querySelector('.'+cls).addEventListener('input', updateAll));
   itemsContainer.appendChild(row);
   return row;
@@ -312,13 +304,24 @@ function createItemRow(data={}) {
 
 function gatherItems(){
   const rows = [...itemsContainer.querySelectorAll('.item-row')];
-  return rows.map(r=>({
+  return rows.map(r => ({
     desc: r.querySelector('.desc').value.trim(),
     unitPrice: parseFloat(r.querySelector('.price').value) || 0,
     qty: parseFloat(r.querySelector('.qty').value) || 0,
     discount: parseFloat(r.querySelector('.discount').value) || 0
   })).filter(i => i.desc || i.unitPrice || i.qty);
 }
+
+/* Calculations and preview */
+function currencyFormatter(code){
+  try { return new Intl.NumberFormat(undefined, { style:'currency', currency: code, maximumFractionDigits:2 }); }
+  catch(e){ return { format: v => (code+' '+(Number(v)||0).toFixed(2)) }; }
+}
+function formatMoney(value){
+  const cur = $('currency') ? $('currency').value || 'INR' : 'INR';
+  return currencyFormatter(cur).format(value || 0);
+}
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 function calculateTotals(){
   const items = gatherItems();
@@ -332,11 +335,11 @@ function calculateTotals(){
 }
 
 function updateAll(){
-  $('previewCompany').textContent = $('companyName').value || 'Company Name';
+  $('previewCompany').textContent = $('companyName').value || '';
   $('previewCompanyMeta').textContent = $('companyMeta').value || '';
-  $('previewClient').textContent = $('clientName').value || 'Client Name';
+  $('previewClient').textContent = $('clientName').value || '';
   $('previewClientMeta').textContent = $('clientMeta').value || '';
-  $('previewInvNo').textContent = $('invoiceNo').value || '-';
+  $('previewInvNo').textContent = $('invoiceNo').value || '';
   $('previewDate').textContent = $('invoiceDate').value || '-';
   $('previewDue').textContent = $('dueDate').value || '-';
   $('previewTerms').textContent = $('paymentTerms').value || '';
@@ -363,22 +366,30 @@ function updateAll(){
   $('pTax').textContent = formatMoney(taxAmount);
   $('pTotal').textContent = formatMoney(grandTotal);
 
-  $('previewStatus').textContent = $('status').value || 'Unpaid';
+  $('previewStatus').textContent = $('status').value || '';
 }
 
-/* Logo */
-$('logoInput').addEventListener('change', (e)=>{
-  const f = e.target.files[0]; if(!f) return;
+/* Logo handling */
+$('logoInput').addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if(!f) return;
   const reader = new FileReader();
-  reader.onload = ()=>{ logoDataUrl = reader.result; const logoEl = $('logoPreview'); logoEl.style.backgroundImage = `url(${logoDataUrl})`; logoEl.style.backgroundSize='cover'; logoEl.style.backgroundPosition='center'; logoEl.textContent=''; };
+  reader.onload = () => {
+    logoDataUrl = reader.result;
+    const logoEl = $('logoPreview');
+    logoEl.style.backgroundImage = `url(${logoDataUrl})`;
+    logoEl.style.backgroundSize = 'cover';
+    logoEl.style.backgroundPosition = 'center';
+    logoEl.textContent = '';
+  };
   reader.readAsDataURL(f);
 });
 
 /* Actions */
-$('addItem').addEventListener('click', (e)=>{ e.preventDefault(); createItemRow(); });
-$('addService').addEventListener('click', (e)=>{ e.preventDefault(); createItemRow({desc:'Consulting / Service', unitPrice:5000, qty:1, discount:0}); updateAll(); });
+$('addItem').addEventListener('click', (e) => { e.preventDefault(); createItemRow(); });
+$('addService').addEventListener('click', (e) => { e.preventDefault(); createItemRow({desc:'Consulting / Service', unitPrice:5000, qty:1, discount:0}); updateAll(); });
 
-$('saveBtn').addEventListener('click', ()=>{
+$('saveBtn').addEventListener('click', () => {
   const payload = buildPayload();
   const key = 'luxinvoice_' + (payload.invoiceNo || 'draft');
   localStorage.setItem(key, JSON.stringify(payload));
@@ -386,115 +397,235 @@ $('saveBtn').addEventListener('click', ()=>{
   alert('Invoice saved locally as "' + key + '". Use Export JSON to download.');
 });
 
-$('downloadJson').addEventListener('click', ()=>{
+$('downloadJson').addEventListener('click', () => {
   const payload = buildPayload();
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = (payload.invoiceNo || 'invoice') + '.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  const a = document.createElement('a');
+  a.href = url; a.download = (payload.invoiceNo || 'invoice') + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
 });
 
-$('loadSample').addEventListener('click', ()=>{ loadSample(); });
-$('resetBtn').addEventListener('click', ()=>{ if(!confirm('Reset all fields and start a new invoice?')) return; resetAll(); });
+$('loadSample').addEventListener('click', () => {
+  loadSample();
+});
 
+/* ---------------------------
+   Print & PDF handlers (reliable)
+   --------------------------- */
+(function(){
+  function el(id){ return document.getElementById(id); }
+
+  const printBtn = el('printBtn');
+  if (printBtn) {
+    printBtn.addEventListener('click', async () => {
+      try {
+        if (typeof updateAll === 'function') updateAll();
+        await new Promise(res => setTimeout(res, 180));
+        const preview = el('invoicePreview');
+        if (!preview) { alert('Invoice preview not found.'); return; }
+        const clone = preview.cloneNode(true);
+        const style = `<style>html,body{margin:0;padding:0;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif}#invoicePreview{box-sizing:border-box;padding:20px;width:100%}table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}img{max-width:100%;height:auto}</style>`;
+        const docHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Print Invoice</title>${style}</head><body><div id="invoicePreview">${clone.innerHTML}</div><script>function doPrint(){ setTimeout(()=>{ window.print(); }, 120); } if (document.readyState === 'complete') doPrint(); else window.onload = doPrint;<\/script></body></html>`;
+        const w = window.open('', '_blank');
+        if (!w) { alert('Popup blocked. Allow popups for this site or use "Download PDF".'); return; }
+        w.document.open(); w.document.write(docHtml); w.document.close();
+      } catch (err) { console.error('Print error:', err); alert('Print failed.'); }
+    });
+  }
+
+  const downloadPdfBtn = el('downloadPdfBtn');
+  if (downloadPdfBtn) {
+    downloadPdfBtn.addEventListener('click', async () => {
+      const btn = downloadPdfBtn; const originalText = btn.textContent;
+      try {
+        btn.disabled = true; btn.textContent = 'Generating...';
+        if (typeof updateAll === 'function') updateAll();
+        await new Promise(res => setTimeout(res, 180));
+        const preview = el('invoicePreview');
+        if (!preview) { alert('Invoice preview not found.'); return; }
+        if (typeof generatePdfFromElement !== 'function') {
+          const w = window.open('', '_blank'); if (!w) { alert('Popup blocked.'); return; }
+          w.document.open(); w.document.write('<html><body>' + preview.innerHTML + '</body></html>'); w.document.close(); return;
+        }
+        const invoiceNoEl = document.getElementById('invoiceNo');
+        const filename = (invoiceNoEl && invoiceNoEl.value) ? invoiceNoEl.value + '.pdf' : 'invoice.pdf';
+        await generatePdfFromElement(preview, filename);
+      } catch (err) { console.error('PDF generation error:', err); alert('PDF generation failed.'); }
+      finally { try { btn.disabled = false; btn.textContent = originalText || 'Download PDF'; } catch(e){} }
+    });
+  }
+})();
+
+/* ---------------------------
+   Build payload, save/load
+   --------------------------- */
 function buildPayload(){
   const {items, subtotal, totalDiscount, taxAmount, grandTotal} = calculateTotals();
   return {
-    companyName: $('companyName').value, companyMeta: $('companyMeta').value,
-    clientName: $('clientName').value, clientMeta: $('clientMeta').value,
-    invoiceNo: $('invoiceNo').value, invoiceDate: $('invoiceDate').value, dueDate: $('dueDate').value,
-    paymentTerms: $('paymentTerms').value, currency: $('currency').value, taxRate: parseFloat($('taxRate').value)||0,
-    bankDetails: $('bankDetails').value, items, subtotal, totalDiscount, taxAmount, grandTotal,
-    notes: $('notes').value, status: $('status').value, logo: logoDataUrl || null, savedAt: new Date().toISOString()
+    companyName: $('companyName').value,
+    companyMeta: $('companyMeta').value,
+    clientName: $('clientName').value,
+    clientMeta: $('clientMeta').value,
+    invoiceNo: $('invoiceNo').value,
+    invoiceDate: $('invoiceDate').value,
+    dueDate: $('dueDate').value,
+    paymentTerms: $('paymentTerms').value,
+    currency: $('currency').value,
+    taxRate: parseFloat($('taxRate').value) || 0,
+    bankDetails: $('bankDetails').value,
+    items,
+    subtotal, totalDiscount, taxAmount, grandTotal,
+    notes: $('notes').value,
+    status: $('status').value,
+    logo: logoDataUrl || null,
+    savedAt: new Date().toISOString()
   };
 }
 
-/* PDF generation with multi-page support */
-async function generatePdfFromElement(element, filename){
-  const scale = 2;
-  const canvas = await html2canvas(element, {scale, useCORS:true, backgroundColor:'#ffffff'});
-  const imgData = canvas.toDataURL('image/png');
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF('p','pt','a4');
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  const canvasWidth = canvas.width;
-  const canvasHeight = canvas.height;
-  const pxToPt = pageWidth / canvasWidth;
-  const imgHeightInPt = canvasHeight * pxToPt;
-
-  if(imgHeightInPt <= pageHeight){
-    pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, imgHeightInPt);
-  } else {
-    let remainingHeight = canvasHeight;
-    let position = 0;
-    const pageCanvas = document.createElement('canvas');
-    const pageCtx = pageCanvas.getContext('2d');
-    while(remainingHeight > 0){
-      const sliceHeight = Math.min(canvasHeight - position, Math.floor(pageHeight / pxToPt));
-      pageCanvas.width = canvasWidth;
-      pageCanvas.height = sliceHeight;
-      pageCtx.clearRect(0,0,pageCanvas.width,pageCanvas.height);
-      pageCtx.drawImage(canvas, 0, position, canvasWidth, sliceHeight, 0, 0, canvasWidth, sliceHeight);
-      const pageData = pageCanvas.toDataURL('image/png');
-      const pageImgHeightPt = sliceHeight * pxToPt;
-      pdf.addImage(pageData, 'PNG', 0, 0, pageWidth, pageImgHeightPt);
-      remainingHeight -= sliceHeight;
-      position += sliceHeight;
-      if(remainingHeight > 0) pdf.addPage();
-    }
-  }
-  pdf.save(filename);
+function saveLast(payload){
+  try { if (!payload) return; localStorage.setItem('luxinvoice_last_payload', JSON.stringify(payload)); }
+  catch(err){ console.error('saveLast error:', err); }
 }
 
-/* Print & Download handlers */
-$('printBtn').addEventListener('click', ()=>{ updateAll(); window.print(); });
-
-$('downloadPdfBtn').addEventListener('click', async ()=>{
-  const btn = $('downloadPdfBtn'); btn.disabled = true; btn.textContent = 'Generating...';
-  try{ updateAll(); await generatePdfFromElement($('invoicePreview'), ($('invoiceNo').value || 'invoice') + '.pdf'); }
-  catch(err){ console.error(err); alert('PDF generation failed. Try Print as an alternative.'); }
-  finally{ btn.disabled = false; btn.textContent = 'Download PDF'; }
-});
-
-/* Save last payload periodically */
-function saveLast(payload){ localStorage.setItem('luxinvoice_last_payload', JSON.stringify(payload)); }
-function loadLast(){ const raw = localStorage.getItem('luxinvoice_last_payload'); if(!raw) return false; try{ applyPayload(JSON.parse(raw)); return true; }catch(e){return false;} }
-function applyPayload(p){
-  $('companyName').value = p.companyName || ''; $('companyMeta').value = p.companyMeta || '';
-  $('clientName').value = p.clientName || ''; $('clientMeta').value = p.clientMeta || '';
-  $('invoiceNo').value = p.invoiceNo || ''; $('invoiceDate').value = p.invoiceDate || ''; $('dueDate').value = p.dueDate || '';
-  $('paymentTerms').value = p.paymentTerms || 'Net 30'; $('currency').value = p.currency || 'INR'; $('taxRate').value = p.taxRate || 0;
-  $('bankDetails').value = p.bankDetails || ''; $('notes').value = p.notes || ''; $('status').value = p.status || 'Unpaid';
-  if(p.logo){ logoDataUrl = p.logo; const logoEl = $('logoPreview'); logoEl.style.backgroundImage = `url(${logoDataUrl})`; logoEl.style.backgroundSize='cover'; logoEl.style.backgroundPosition='center'; logoEl.textContent=''; } else { $('logoPreview').style.backgroundImage=''; $('logoPreview').textContent='LI'; }
-  itemsContainer.innerHTML = ''; (p.items || []).forEach(it => createItemRow({desc:it.desc, unitPrice:it.unitPrice, qty:it.qty, discount:it.discount}));
-  updateAll();
+function loadLast(){
+  try {
+    const raw = localStorage.getItem('luxinvoice_last_payload');
+    if(!raw) return false;
+    const p = JSON.parse(raw);
+    if (typeof applyPayload === 'function') { applyPayload(p); return true; }
+    return false;
+  } catch(e){ console.error('loadLast error:', e); return false; }
 }
 
+/* ---------------------------
+   Reset function and handler
+   - Clears all fields, logo, items, and removes saved localStorage keys starting with luxinvoice_
+   --------------------------- */
 function resetAll(){
-  $('companyName').value = 'Luxury Corp Pvt Ltd';
-  $('companyMeta').value = '123 Elite Avenue, Lucknow • +91 98765 43210 • hello@luxury.com';
-  $('clientName').value = 'Client Co.'; $('clientMeta').value = '456 Business Park, Delhi • client@company.com';
-  $('invoiceNo').value = 'INV-' + new Date().getFullYear() + '-' + Math.floor(Math.random()*900+100);
-  $('invoiceDate').valueAsDate = new Date(); const due = new Date(); due.setDate(due.getDate()+30); $('dueDate').valueAsDate = due;
-  $('paymentTerms').value = 'Net 30'; $('currency').value = 'INR'; $('taxRate').value = 18;
-  $('bankDetails').value = 'Bank: Elite Bank • A/C: 1234567890 • IFSC: ELIT0001234';
-  $('notes').value = 'Thank you for your business. Please remit payment within the terms above.'; $('status').value = 'Unpaid';
-  logoDataUrl = null; $('logoPreview').style.backgroundImage = ''; $('logoPreview').textContent = 'LI';
-  itemsContainer.innerHTML = ''; createItemRow({desc:'Website design (Premium)', unitPrice:15000, qty:1, discount:0}); createItemRow({desc:'Annual hosting & maintenance', unitPrice:2000, qty:1, discount:0});
+  try {
+    // Clear all form fields
+    const fields = ['companyName','companyMeta','clientName','clientMeta','invoiceNo','invoiceDate','dueDate','paymentTerms','currency','taxRate','bankDetails','notes','status'];
+    fields.forEach(id => { const el = document.getElementById(id); if(el) { if(el.tagName === 'SELECT') el.selectedIndex = 0; else el.value = ''; } });
+
+    // Clear logo
+    logoDataUrl = null;
+    const logoEl = document.getElementById('logoPreview');
+    if (logoEl) { logoEl.style.backgroundImage = ''; logoEl.textContent = 'LI'; }
+
+    // Clear items
+    if (itemsContainer) itemsContainer.innerHTML = '';
+
+    // Optionally create one empty row so UI isn't totally blank (comment out if not wanted)
+    // createItemRow({desc:'', unitPrice:0, qty:1, discount:0});
+
+    // Remove saved invoices from localStorage that start with 'luxinvoice_'
+    try {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('luxinvoice_')) keysToRemove.push(k);
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      localStorage.removeItem('luxinvoice_last_payload');
+      localStorage.removeItem('luxinvoice_last');
+    } catch (lsErr) {
+      console.warn('Could not clear localStorage keys:', lsErr);
+    }
+
+    // Update preview
+    if (typeof updateAll === 'function') updateAll();
+
+    // Feedback (optional)
+    // alert('All fields cleared and saved invoices removed.');
+  } catch (err) {
+    console.error('resetAll error:', err);
+    alert('Reset failed. Check console for details.');
+  }
+}
+
+// Attach reset button handler
+(function attachResetHandler(){
+  const btn = document.getElementById('resetBtn');
+  if (!btn) return;
+  // Remove existing listeners by replacing node
+  const clone = btn.cloneNode(true);
+  btn.parentNode.replaceChild(clone, btn);
+  clone.addEventListener('click', () => {
+    const ok = confirm('Reset all fields and remove saved invoices? This cannot be undone.');
+    if (!ok) return;
+    resetAll();
+  });
+})();
+
+/* ---------------------------
+   Sample loader and init
+   --------------------------- */
+function applyPayload(p){
+  if(!p) return;
+  $('companyName').value = p.companyName || '';
+  $('companyMeta').value = p.companyMeta || '';
+  $('clientName').value = p.clientName || '';
+  $('clientMeta').value = p.clientMeta || '';
+  $('invoiceNo').value = p.invoiceNo || '';
+  $('invoiceDate').value = p.invoiceDate || '';
+  $('dueDate').value = p.dueDate || '';
+  $('paymentTerms').value = p.paymentTerms || 'Net 30';
+  $('currency').value = p.currency || 'INR';
+  $('taxRate').value = p.taxRate || 0;
+  $('bankDetails').value = p.bankDetails || '';
+  $('notes').value = p.notes || '';
+  $('status').value = p.status || 'Unpaid';
+  if(p.logo){ logoDataUrl = p.logo; const logoEl = $('logoPreview'); logoEl.style.backgroundImage = `url(${logoDataUrl})`; logoEl.style.backgroundSize='cover'; logoEl.style.backgroundPosition='center'; logoEl.textContent=''; } else { $('logoPreview').style.backgroundImage=''; $('logoPreview').textContent='LI'; }
+  itemsContainer.innerHTML = '';
+  (p.items || []).forEach(it => createItemRow({desc:it.desc, unitPrice:it.unitPrice, qty:it.qty, discount:it.discount}));
   updateAll();
 }
 
 function loadSample(){
-  const sample = { companyName:'Luxury Corp Pvt Ltd', companyMeta:'123 Elite Avenue, Lucknow • +91 98765 43210 • hello@luxury.com', clientName:'Client Co.', clientMeta:'456 Business Park, Delhi • client@company.com', invoiceNo:'INV-2026-100', invoiceDate:new Date().toISOString().slice(0,10), dueDate:(function(){const d=new Date();d.setDate(d.getDate()+30);return d.toISOString().slice(0,10);})(), paymentTerms:'Net 30', currency:'INR', taxRate:18, bankDetails:'Bank: Elite Bank • A/C: 1234567890 • IFSC: ELIT0001234', items:[{desc:'Website design (Premium)', unitPrice:15000, qty:1, discount:0},{desc:'SEO & Marketing (3 months)', unitPrice:8000, qty:1, discount:500},{desc:'Hosting (12 months)', unitPrice:2000, qty:1, discount:0}], notes:'Thank you for your business. Please remit payment within 30 days.', status:'Unpaid', logo:null };
+  const sample = {
+    companyName: 'Luxury Corp Pvt Ltd',
+    companyMeta: '123 Elite Avenue, Lucknow • +91 98765 43210 • hello@luxury.com',
+    clientName: 'Client Co.',
+    clientMeta: '456 Business Park, Delhi • client@company.com',
+    invoiceNo: 'INV-2026-100',
+    invoiceDate: new Date().toISOString().slice(0,10),
+    dueDate: (function(){ const d=new Date(); d.setDate(d.getDate()+30); return d.toISOString().slice(0,10); })(),
+    paymentTerms: 'Net 30',
+    currency: 'INR',
+    taxRate: 18,
+    bankDetails: 'Bank: Elite Bank • A/C: 1234567890 • IFSC: ELIT0001234',
+    items: [
+      {desc:'Website design (Premium)', unitPrice:15000, qty:1, discount:0},
+      {desc:'SEO & Marketing (3 months)', unitPrice:8000, qty:1, discount:500},
+      {desc:'Hosting (12 months)', unitPrice:2000, qty:1, discount:0}
+    ],
+    notes: 'Thank you for your business. Please remit payment within 30 days.',
+    status: 'Unpaid',
+    logo: null
+  };
   applyPayload(sample);
 }
 
 /* Init */
 (function init(){
-  $('invoiceDate').valueAsDate = new Date(); const due = new Date(); due.setDate(due.getDate()+30); $('dueDate').valueAsDate = due;
-  if(!loadLast()) resetAll();
-  ['companyName','companyMeta','clientName','clientMeta','invoiceNo','invoiceDate','dueDate','paymentTerms','taxRate','bankDetails','notes','status','currency'].forEach(id=>{ $(id).addEventListener('input', updateAll); $(id).addEventListener('change', updateAll); });
-  setInterval(()=>{ saveLast(buildPayload()); localStorage.setItem('luxinvoice_last_payload', JSON.stringify(buildPayload())); }, 5000);
+  // Default dates
+  $('invoiceDate').valueAsDate = new Date();
+  const due = new Date(); due.setDate(due.getDate()+30); $('dueDate').valueAsDate = due;
+
+  // Start with one empty item row
+  createItemRow({desc:'', unitPrice:0, qty:1, discount:0});
+  updateAll();
+
+  // Wire up input listeners
+  ['companyName','companyMeta','clientName','clientMeta','invoiceNo','invoiceDate','dueDate','paymentTerms','taxRate','bankDetails','notes','status','currency'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el){ el.addEventListener('input', updateAll); el.addEventListener('change', updateAll); }
+  });
+
+  // Periodic autosave of last payload
+  setInterval(()=>{ try { saveLast(buildPayload()); localStorage.setItem('luxinvoice_last_payload', JSON.stringify(buildPayload())); } catch(e){} }, 5000);
 })();
 </script>
 </body>
