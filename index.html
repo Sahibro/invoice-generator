@@ -1,22 +1,29 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Advanced Invoice Generator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pro Invoice Generator</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <style>
-body{
-font-family:Arial;
-background:#f4f6fb;
+
+*{
+box-sizing:border-box;
 margin:0;
+padding:0;
+font-family:Inter,sans-serif;
+}
+
+body{
+background:#f4f6fb;
 padding:20px;
 }
 
 .container{
-max-width:1100px;
+max-width:1200px;
 margin:auto;
 display:grid;
 grid-template-columns:1fr 1fr;
@@ -26,14 +33,26 @@ gap:20px;
 .card{
 background:white;
 padding:20px;
-border-radius:10px;
-box-shadow:0 5px 15px rgba(0,0,0,0.05);
+border-radius:12px;
+box-shadow:0 10px 30px rgba(0,0,0,0.05);
+}
+
+h1{
+margin-bottom:10px;
+}
+
+label{
+font-size:13px;
+color:#555;
+display:block;
+margin-bottom:5px;
 }
 
 input{
 width:100%;
-padding:8px;
-margin-top:5px;
+padding:10px;
+border-radius:6px;
+border:1px solid #ddd;
 margin-bottom:10px;
 }
 
@@ -42,6 +61,7 @@ padding:10px 15px;
 border:none;
 border-radius:6px;
 cursor:pointer;
+font-weight:600;
 }
 
 .primary{
@@ -49,108 +69,137 @@ background:#0ea5a4;
 color:white;
 }
 
-.items{
+.ghost{
+background:#eee;
+}
+
+.items-header,
+.item{
+display:grid;
+grid-template-columns:2fr 1fr 1fr 1fr 40px;
+gap:10px;
 margin-top:10px;
 }
 
-.item{
-display:grid;
-grid-template-columns:2fr 1fr 1fr 40px;
-gap:5px;
-margin-bottom:5px;
+.items-header{
+font-weight:600;
+font-size:13px;
 }
 
-.invoice{
-background:white;
-padding:20px;
+.item input{
+margin:0;
+}
+
+.remove{
+background:#ef4444;
+color:white;
 }
 
 table{
 width:100%;
 border-collapse:collapse;
-margin-top:15px;
-}
-
-th,td{
-border-bottom:1px solid #eee;
-padding:8px;
-text-align:left;
-}
-
-.history{
 margin-top:20px;
 }
 
+th,td{
+padding:10px;
+border-bottom:1px solid #eee;
+text-align:left;
+}
+
+.summary{
+margin-top:20px;
+}
+
+.summary div{
+display:flex;
+justify-content:space-between;
+margin-bottom:5px;
+}
+
+.total{
+font-size:18px;
+font-weight:700;
+}
+
 .logo{
-max-height:60px;
+max-width:120px;
+margin-bottom:10px;
+}
+
+@media(max-width:900px){
+
+.container{
+grid-template-columns:1fr;
+}
+
 }
 
 </style>
+
 </head>
 
 <body>
 
-<h2>Advanced Invoice Generator</h2>
+<h1>Professional Invoice Generator</h1>
 
 <div class="container">
 
 <div class="card">
 
-<label>Company Name</label>
-<input id="company" value="My Company">
+<label>Company Name</label> <input id="company" value="Your Company">
 
-<label>Client Name</label>
-<input id="client" value="Client">
+<label>Client Name</label> <input id="client" value="Client Name">
 
-<label>Invoice Number</label>
-<input id="number" value="INV-001">
+<label>Invoice Number</label> <input id="invno" value="INV-001">
 
-<label>Date</label>
-<input id="date" type="date">
+<label>Date</label> <input type="date" id="date">
 
-<label>Upload Logo</label>
-<input type="file" id="logoUpload">
+<label>Upload Logo</label> <input type="file" id="logoUpload">
 
 <h3>Items</h3>
 
+<div class="items-header">
+<div>Description</div>
+<div>Price</div>
+<div>Qty</div>
+<div>Total</div>
+<div></div>
+</div>
+
 <div id="items"></div>
 
-<button onclick="addItem()">Add Item</button>
-
-<label>Tax %</label>
-<input id="tax" type="number" value="18">
-
-<label>Discount</label>
-<input id="discount" type="number" value="0">
+<button class="ghost" onclick="addItem()">Add Item</button>
 
 <br><br>
 
-<button class="primary" onclick="generatePDF()">Download PDF</button>
-<button onclick="saveInvoice()">Save Invoice</button>
+<label>Tax %</label> <input id="tax" type="number" value="18">
+
+<label>Discount</label> <input id="discount" type="number" value="0">
+
+<br>
+
+<button class="primary" onclick="downloadPDF()">Download PDF</button> <button onclick="window.print()">Print</button>
 
 </div>
-
 
 <div class="card">
 
-<div id="invoicePreview" class="invoice">
+<div id="invoice">
 
-<div style="display:flex;justify-content:space-between">
-<div>
 <img id="logoPreview" class="logo">
-<h3 id="pCompany"></h3>
-</div>
+
+<h2 id="pCompany"></h2>
 
 <div>
-<b>Invoice</b><br>
-No: <span id="pNumber"></span><br>
+Invoice #: <span id="pInv"></span><br>
 Date: <span id="pDate"></span>
-</div>
 </div>
 
 <br>
 
-<b>Bill To:</b>
+<strong>Bill To:</strong>
+
 <div id="pClient"></div>
 
 <table>
@@ -163,177 +212,143 @@ Date: <span id="pDate"></span>
 </tr>
 </thead>
 
-<tbody id="tableBody"></tbody>
+<tbody id="previewItems"></tbody>
+
 </table>
 
-<br>
-
-<div>
-Subtotal: <span id="pSubtotal"></span><br>
-Tax: <span id="pTax"></span><br>
-Discount: <span id="pDiscount"></span><br>
-<h3>Total: <span id="pTotal"></span></h3>
-</div>
-
-</div>
-
-<div class="history">
-<h3>Saved Invoices</h3>
-<ul id="historyList"></ul>
+<div class="summary">
+<div><span>Subtotal</span><span id="sub"></span></div>
+<div><span>Tax</span><span id="taxv"></span></div>
+<div><span>Discount</span><span id="dis"></span></div>
+<div class="total"><span>Total</span><span id="total"></span></div>
 </div>
 
 </div>
 
 </div>
 
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
 
-let items=[]
+const items=document.getElementById("items")
 
-function addItem(desc="",price=0,qty=1){
+function addItem(){
 
-let container=document.getElementById("items")
+const row=document.createElement("div")
+row.className="item"
 
-let div=document.createElement("div")
-div.className="item"
-
-div.innerHTML=`
-<input class="desc" placeholder="Service" value="${desc}">
-<input class="price" type="number" value="${price}">
-<input class="qty" type="number" value="${qty}">
-<button onclick="this.parentElement.remove();update()">X</button>
+row.innerHTML=`
+<input class="desc">
+<input type="number" class="price" value="0">
+<input type="number" class="qty" value="1">
+<input class="total" disabled>
+<button class="remove">X</button>
 `
 
-container.appendChild(div)
+row.querySelector(".remove").onclick=()=>row.remove()
 
-div.querySelectorAll("input").forEach(i=>i.addEventListener("input",update))
+items.appendChild(row)
 
-update()
 }
 
-function currency(v){
-return "₹"+v.toFixed(2)
-}
+addItem()
+
+setInterval(update,500)
 
 function update(){
 
-let rows=document.querySelectorAll(".item")
+const company=document.getElementById("company").value
+const client=document.getElementById("client").value
+const inv=document.getElementById("invno").value
+const date=document.getElementById("date").value
 
-let body=document.getElementById("tableBody")
+document.getElementById("pCompany").innerText=company
+document.getElementById("pClient").innerText=client
+document.getElementById("pInv").innerText=inv
+document.getElementById("pDate").innerText=date
 
-body.innerHTML=""
+const rows=document.querySelectorAll(".item")
 
 let subtotal=0
+let html=""
 
 rows.forEach(r=>{
 
-let desc=r.querySelector(".desc").value
-let price=parseFloat(r.querySelector(".price").value)||0
-let qty=parseFloat(r.querySelector(".qty").value)||0
+const desc=r.querySelector(".desc").value
+const price=Number(r.querySelector(".price").value)
+const qty=Number(r.querySelector(".qty").value)
 
-let total=price*qty
+const total=price*qty
+
+r.querySelector(".total").value=total
 
 subtotal+=total
 
-let tr=document.createElement("tr")
-
-tr.innerHTML=`
+html+=`
+<tr>
 <td>${desc}</td>
-<td>${currency(price)}</td>
+<td>${price}</td>
 <td>${qty}</td>
-<td>${currency(total)}</td>
+<td>${total}</td>
+</tr>
 `
 
-body.appendChild(tr)
-
 })
 
-let taxRate=parseFloat(document.getElementById("tax").value)||0
-let discount=parseFloat(document.getElementById("discount").value)||0
+document.getElementById("previewItems").innerHTML=html
 
-let tax=subtotal*(taxRate/100)
+const taxRate=Number(document.getElementById("tax").value)
+const discount=Number(document.getElementById("discount").value)
 
-let total=subtotal+tax-discount
+const tax=subtotal*(taxRate/100)
 
-document.getElementById("pSubtotal").innerText=currency(subtotal)
-document.getElementById("pTax").innerText=currency(tax)
-document.getElementById("pDiscount").innerText=currency(discount)
-document.getElementById("pTotal").innerText=currency(total)
+const total=subtotal+tax-discount
 
-document.getElementById("pCompany").innerText=document.getElementById("company").value
-document.getElementById("pClient").innerText=document.getElementById("client").value
-document.getElementById("pNumber").innerText=document.getElementById("number").value
-document.getElementById("pDate").innerText=document.getElementById("date").value
+document.getElementById("sub").innerText=subtotal
+document.getElementById("taxv").innerText=tax
+document.getElementById("dis").innerText=discount
+document.getElementById("total").innerText=total
 
 }
 
-function generatePDF(){
+document.getElementById("logoUpload").onchange=e=>{
 
-let element=document.getElementById("invoicePreview")
-
-html2pdf().from(element).save("invoice.pdf")
-
-}
-
-function saveInvoice(){
-
-let data={
-number:document.getElementById("number").value,
-client:document.getElementById("client").value
-}
-
-let list=JSON.parse(localStorage.getItem("invoices")||"[]")
-
-list.push(data)
-
-localStorage.setItem("invoices",JSON.stringify(list))
-
-loadHistory()
-
-}
-
-function loadHistory(){
-
-let list=JSON.parse(localStorage.getItem("invoices")||"[]")
-
-let ul=document.getElementById("historyList")
-
-ul.innerHTML=""
-
-list.forEach(i=>{
-
-let li=document.createElement("li")
-
-li.innerText=i.number+" - "+i.client
-
-ul.appendChild(li)
-
-})
-
-}
-
-document.getElementById("logoUpload").addEventListener("change",function(e){
-
-let reader=new FileReader()
+const file=e.target.files[0]
+const reader=new FileReader()
 
 reader.onload=function(){
-
 document.getElementById("logoPreview").src=reader.result
+}
+
+reader.readAsDataURL(file)
 
 }
 
-reader.readAsDataURL(e.target.files[0])
+async function downloadPDF(){
 
-})
+const {jsPDF}=window.jspdf
 
-document.querySelectorAll("input").forEach(i=>i.addEventListener("input",update))
+const element=document.getElementById("invoice")
 
-addItem("Website Design",15000,1)
+const canvas=await html2canvas(element)
 
-loadHistory()
+const img=canvas.toDataURL("image/png")
 
-update()
+const pdf=new jsPDF("p","mm","a4")
+
+const width=210
+const height=canvas.height*width/canvas.width
+
+pdf.addImage(img,"PNG",0,0,width,height)
+
+pdf.save("invoice.pdf")
+
+}
 
 </script>
 
