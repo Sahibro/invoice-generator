@@ -336,12 +336,11 @@
 <script>
 /* ============================
    Universal B2B Billing App
-   Single-file, client-side, global-ready
-   - Subtotal = sum of row net amounts (price*qty - discount)
-   - Tax logic: IGST vs CGST+SGST based on states
-   - Local DB: savedInvoices in localStorage with unique IDs
-   - HSN/SAC, UOM, SWIFT/BIC, IBAN included
-   - Amount in words, signature, print CSS with page-break avoidance
+   - Fixed PDF slicing to avoid cutting table rows
+   - Subtotal = sum of row net amounts
+   - IGST vs CGST+SGST logic
+   - Local DB (localStorage) with import/export
+   - HSN/SAC, UOM, SWIFT/BIC, IBAN, amount in words, signature
    ============================ */
 
 /* Helpers */
@@ -349,7 +348,7 @@ const $ = id => document.getElementById(id);
 const itemsContainer = $('itemsContainer');
 let logoDataUrl = null;
 
-/* Populate states (India + generic 'Other') */
+/* Populate states */
 const STATES = [
   "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat","Haryana","Himachal Pradesh","Jharkhand",
   "Karnataka","Kerala","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram","Nagaland","Odisha","Punjab","Rajasthan",
@@ -369,7 +368,7 @@ populateStateSelects();
 /* Escape HTML */
 function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-/* Create item row (includes optional per-row discount if needed later) */
+/* Create item row */
 function createItemRow(data = {}){
   const {desc='', hsn='', uom='Pcs', qty=1, unitPrice=0, discount=0} = data;
   const row = document.createElement('div');
@@ -399,7 +398,7 @@ function createItemRow(data = {}){
   return row;
 }
 
-/* Gather items and compute row totals (supports optional discount) */
+/* Gather items and compute row totals */
 function gatherItems(){
   const rows = [...itemsContainer.querySelectorAll('.item-row')];
   return rows.map(r => {
@@ -408,7 +407,7 @@ function gatherItems(){
     const uom = r.querySelector('.uom').value;
     const qty = parseFloat(r.querySelector('.qty').value) || 0;
     const unitPrice = parseFloat(r.querySelector('.price').value) || 0;
-    const discount = 0; // kept zero by default to avoid confusion; extend UI to include discount if needed
+    const discount = 0;
     const rowTotal = Math.round(((unitPrice * qty) - discount) * 100) / 100;
     return {desc, hsn, uom, qty, unitPrice, discount, rowTotal};
   }).filter(i => i.desc || i.unitPrice || i.qty);
@@ -421,7 +420,7 @@ function formatMoney(value){
   catch(e){ return (cur+' '+(Number(value)||0).toFixed(2)); }
 }
 
-/* Tax & totals logic (CRITICAL) */
+/* Tax & totals logic */
 function calculateTotals(){
   const items = gatherItems();
   let subtotal = 0;
@@ -472,7 +471,6 @@ function updateAll(){
 
   const {items, subtotal, taxBreakdown, taxAmount, grandTotal} = calculateTotals();
 
-  // Update row totals in UI and preview table
   const tbody = $('invBody'); tbody.innerHTML = '';
   items.forEach(it => {
     const tr = document.createElement('tr');
@@ -486,11 +484,9 @@ function updateAll(){
     tbody.appendChild(tr);
   });
 
-  // Update summary
   $('subtotal').textContent = formatMoney(subtotal);
   $('pSubtotal').textContent = formatMoney(subtotal);
 
-  // Tax display
   const taxLabelEl = $('taxLabel');
   const taxAmountEl = $('taxAmount');
   const pTaxEl = $('pTax');
@@ -513,7 +509,6 @@ function updateAll(){
 
   $('amountWords').textContent = amountToWords(grandTotal, $('currency') ? $('currency').value : 'INR');
 
-  // Logo preview
   const logoEl = $('logoPreview');
   if (logoDataUrl){
     logoEl.style.backgroundImage = `url(${logoDataUrl})`;
@@ -525,7 +520,6 @@ function updateAll(){
     logoEl.textContent = 'LI';
   }
 
-  // Update per-row displayed rowTotal in items container
   [...itemsContainer.querySelectorAll('.item-row')].forEach((r, idx) => {
     const rt = r.querySelector('.rowTotal');
     if (rt && items[idx]) rt.textContent = formatMoney(items[idx].rowTotal);
@@ -544,77 +538,25 @@ $('logoInput')?.addEventListener('change', (e) => {
   reader.readAsDataURL(f);
 });
 
-/* Print handler: clone + inline styles for screen-exact print */
-(function(){
-  function copyComputedStyles(source, target){
-    const s = window.getComputedStyle(source);
-    let cssText = '';
-    for (let i = 0; i < s.length; i++){
-      const prop = s[i];
-      try { cssText += `${prop}:${s.getPropertyValue(prop)};`; } catch(e){}
-    }
-    target.style.cssText = cssText;
-    const srcChildren = source.children || [];
-    const tgtChildren = target.children || [];
-    for (let i = 0; i < srcChildren.length; i++){
-      if (tgtChildren[i]) copyComputedStyles(srcChildren[i], tgtChildren[i]);
-    }
-  }
-
-  const printBtn = $('printBtn');
-  if (!printBtn) return;
-  printBtn.addEventListener('click', async () => {
-    try {
-      if (typeof updateAll === 'function') updateAll();
-      await new Promise(r => setTimeout(r, 180));
-      const preview = $('invoicePreview');
-      if (!preview) { alert('Invoice preview not found.'); return; }
-      const clone = preview.cloneNode(true);
-      copyComputedStyles(preview, clone);
-
-      let styleSheetsText = '';
-      Array.from(document.styleSheets).forEach(ss => {
-        try { styleSheetsText += Array.from(ss.cssRules || []).map(r => r.cssText).join('\n'); } catch(e){}
-      });
-
-      const docHtml = `
-        <!doctype html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width,initial-scale=1">
-            <title>Print Invoice</title>
-            <style>
-              ${styleSheetsText}
-              html,body{margin:0;padding:0;background:#fff;color:#000;font-family:inherit}
-              #invoicePreview{box-sizing:border-box;padding:20px;width:100%}
-              table{width:100%;border-collapse:collapse}
-              th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}
-              tr{page-break-inside:avoid}
-              img{max-width:100%;height:auto}
-            </style>
-          </head>
-          <body>
-            <div id="invoicePreview">${clone.innerHTML}</div>
-            <script>function doPrint(){ setTimeout(()=>{ window.print(); }, 120); } if (document.readyState === 'complete') doPrint(); else window.onload = doPrint;<\/script>
-          </body>
-        </html>
-      `;
-
-      const w = window.open('', '_blank');
-      if (!w) { alert('Popup blocked. Allow popups for this site or use Download PDF.'); return; }
-      w.document.open(); w.document.write(docHtml); w.document.close();
-    } catch (err) {
-      console.error('Print error:', err);
-      alert('Print failed. Try Download PDF or refresh the page.');
-    }
-  });
-})();
-
-/* PDF generation: html2canvas + jsPDF with multi-page support and mobile-aware scale */
+/* ============================
+   PDF generation with row-aware slicing
+   - Ensures table rows are not cut between pages
+   ============================ */
 async function generatePdfFromElement(element, filename){
+  // Determine device and scale
   const isMobile = /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth < 700;
   const scale = isMobile ? 1.2 : 2.0;
+
+  // Compute row boundaries in element coordinates before rendering
+  const previewRect = element.getBoundingClientRect();
+  const rowEls = Array.from(document.querySelectorAll('#invBody tr'));
+  // If no rows, fallback to simple capture
+  const rowOffsets = rowEls.map(r => {
+    const rRect = r.getBoundingClientRect();
+    return Math.max(0, rRect.top - previewRect.top); // offset in CSS pixels
+  });
+
+  // Render canvas
   const originalWidth = element.offsetWidth;
   element.style.width = originalWidth + 'px';
 
@@ -628,7 +570,11 @@ async function generatePdfFromElement(element, filename){
     windowHeight: document.documentElement.clientHeight
   });
 
-  const imgData = canvas.toDataURL('image/png');
+  // Convert row offsets to canvas pixels (scale factor)
+  const canvasScale = canvas.width / element.getBoundingClientRect().width;
+  const canvasRowOffsets = rowOffsets.map(o => Math.round(o * canvasScale));
+
+  // Prepare PDF
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF('p','pt','a4');
   const pageWidth = pdf.internal.pageSize.getWidth();
@@ -637,28 +583,60 @@ async function generatePdfFromElement(element, filename){
   const canvasWidth = canvas.width;
   const canvasHeight = canvas.height;
   const pxToPt = pageWidth / canvasWidth;
-  const imgHeightInPt = canvasHeight * pxToPt;
 
-  if (imgHeightInPt <= pageHeight){
-    pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, imgHeightInPt);
-  } else {
-    let remainingHeight = canvasHeight;
-    let position = 0;
-    const pageCanvas = document.createElement('canvas');
-    const pageCtx = pageCanvas.getContext('2d');
-    while (remainingHeight > 0){
-      const sliceHeight = Math.min(canvasHeight - position, Math.floor(pageHeight / pxToPt));
-      pageCanvas.width = canvasWidth;
-      pageCanvas.height = sliceHeight;
-      pageCtx.clearRect(0,0,pageCanvas.width,pageCanvas.height);
-      pageCtx.drawImage(canvas, 0, position, canvasWidth, sliceHeight, 0, 0, canvasWidth, sliceHeight);
-      const pageData = pageCanvas.toDataURL('image/png');
-      const pageImgHeightPt = sliceHeight * pxToPt;
-      pdf.addImage(pageData, 'PNG', 0, 0, pageWidth, pageImgHeightPt);
-      remainingHeight -= sliceHeight;
-      position += sliceHeight;
-      if (remainingHeight > 0) pdf.addPage();
+  // Helper: find safe slice end (in canvas px) that does not cut a row
+  function findSafeSliceEnd(positionPx, maxSlicePx){
+    // desired end
+    let desired = positionPx + maxSlicePx;
+    // If there are no rows, just return desired
+    if (canvasRowOffsets.length === 0) {
+      return Math.min(desired, canvasHeight);
     }
+    // Find the last row boundary (bottom of row) that is <= desired
+    // We need bottom positions; compute row bottoms by taking next row top or table bottom
+    const rowBottoms = canvasRowOffsets.map((top, idx) => {
+      const nextTop = (idx + 1 < canvasRowOffsets.length) ? canvasRowOffsets[idx+1] : canvasHeight;
+      // bottom of this row is nextTop (approx)
+      return nextTop;
+    });
+    // Find candidate bottom > positionPx
+    let candidate = null;
+    for (let i = 0; i < rowBottoms.length; i++){
+      const b = rowBottoms[i];
+      if (b > positionPx && b <= desired) candidate = b;
+      if (b > desired) break;
+    }
+    if (candidate) return candidate;
+    // If no candidate found (e.g., a single very tall row), fallback to desired but ensure at least one row included
+    // Find first row bottom > positionPx
+    for (let i = 0; i < rowBottoms.length; i++){
+      if (rowBottoms[i] > positionPx) return Math.min(rowBottoms[i], canvasHeight);
+    }
+    // final fallback
+    return Math.min(desired, canvasHeight);
+  }
+
+  // Convert canvas to image and slice into pages using safe boundaries
+  let position = 0;
+  const pageCanvas = document.createElement('canvas');
+  const pageCtx = pageCanvas.getContext('2d');
+
+  // Compute max slice height in canvas px corresponding to one PDF page
+  const maxSlicePx = Math.floor(pageHeight / pxToPt);
+
+  while (position < canvasHeight){
+    // Determine safe end
+    const sliceEnd = findSafeSliceEnd(position, maxSlicePx);
+    const sliceHeight = sliceEnd - position;
+    pageCanvas.width = canvasWidth;
+    pageCanvas.height = sliceHeight;
+    pageCtx.clearRect(0,0,pageCanvas.width,pageCanvas.height);
+    pageCtx.drawImage(canvas, 0, position, canvasWidth, sliceHeight, 0, 0, canvasWidth, sliceHeight);
+    const pageData = pageCanvas.toDataURL('image/png');
+    const pageImgHeightPt = sliceHeight * pxToPt;
+    pdf.addImage(pageData, 'PNG', 0, 0, pageWidth, pageImgHeightPt);
+    position = sliceEnd;
+    if (position < canvasHeight) pdf.addPage();
   }
 
   pdf.save(filename);
@@ -692,7 +670,7 @@ async function generatePdfFromElement(element, filename){
 })();
 
 /* ============================
-   Amount to words (supports INR and generic)
+   Amount to words
    ============================ */
 function numberToWords(num){
   if (num === 0) return 'zero';
@@ -726,8 +704,6 @@ function capitalize(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
 
 /* ============================
    Local DB: savedInvoices in localStorage
-   - Key: savedInvoices (array)
-   - Each record: { id, invoiceNo, clientName, total, savedAt, payload }
    ============================ */
 function readSavedInvoices(){
   try {
