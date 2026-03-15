@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Invoice Generator — Reset Fixed</title>
+<title>Invoice Generator — Exact Print & PDF</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -55,11 +55,17 @@
   @media (max-width:900px){.wrap{grid-template-columns:1fr;padding:16px}.card{padding:14px}.items header, .item-row{grid-template-columns:1fr 100px 70px 70px 36px}}
   @media (max-width:640px){.items header, .item-row{grid-template-columns:1fr 90px 60px 60px 36px}.brand .logo{width:56px;height:56px;font-size:16px}}
 
-  /* PRINT FIX */
+  /* PRINT: keep invoice visuals intact, hide UI */
   @media print {
     .controls, .btn, header p.lead, input, textarea, select, .items header, .item-row, .card > .controls { display: none !important; }
-    #invoicePreview, .invoice { display: block !important; visibility: visible !important; position: relative !important; width:100% !important; box-shadow:none !important; border:none !important; margin:0 !important; padding:0.5in !important; background:#fff !important; }
-    * { color: #000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    html,body{background:#fff !important;color:#000 !important}
+    #invoicePreview, .invoice {
+      display:block !important; visibility:visible !important; position:relative !important;
+      left:0 !important; top:0 !important; width:100% !important; max-width:100% !important;
+      box-shadow:none !important; border:none !important; border-radius:0 !important; margin:0 !important;
+      padding:0.5in !important; background:#fff !important;
+    }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color:#000 !important; }
   }
 </style>
 </head>
@@ -68,7 +74,7 @@
     <header>
       <div>
         <h1>LuxInvoice — Professional Invoice Generator</h1>
-        <p class="lead">B2B ready • Mobile & Laptop friendly • Printable & downloadable PDF</p>
+        <p class="lead">Preview → Print → Download PDF (screen‑exact output)</p>
       </div>
       <div class="flex">
         <button id="loadSample" class="btn ghost">Load Sample</button>
@@ -83,7 +89,7 @@
           <input id="companyName" type="text" placeholder="Your company name" value="">
         </div>
         <div class="col">
-          <label>Company Tagline Address</label>
+          <label>Company Tagline / Address</label>
           <input id="companyMeta" type="text" placeholder="Address, phone, email" value="">
         </div>
       </div>
@@ -94,7 +100,7 @@
           <input id="clientName" type="text" placeholder="Client or company name" value="">
         </div>
         <div class="col">
-          <label>Client Address Contact</label>
+          <label>Client Address / Contact</label>
           <input id="clientMeta" type="text" placeholder="Client address or contact" value="">
         </div>
       </div>
@@ -138,25 +144,25 @@
           </select>
         </div>
         <div style="flex:1">
-          <label>Tax VAT %</label>
+          <label>Tax / VAT (%)</label>
           <input id="taxRate" type="number" min="0" step="0.01" value="0">
         </div>
       </div>
 
       <div class="form-group">
-        <label>Bank Payment Details</label>
+        <label>Bank / Payment Details</label>
         <textarea id="bankDetails"></textarea>
       </div>
 
       <div class="form-group">
-        <label>Upload Logo optional</label>
+        <label>Upload Logo (optional)</label>
         <input id="logoInput" type="file" accept="image/*">
       </div>
 
       <h3 style="margin-top:6px;margin-bottom:8px">Line Items</h3>
       <div class="items" id="itemsContainer" aria-live="polite">
         <header>
-          <div>Description Item code</div>
+          <div>Description / Item code</div>
           <div>Unit Price</div>
           <div>Qty</div>
           <div>Discount</div>
@@ -206,7 +212,7 @@
       </div>
 
       <div style="margin-top:12px">
-        <label>Notes Terms</label>
+        <label>Notes / Terms</label>
         <textarea id="notes"></textarea>
       </div>
     </aside>
@@ -215,7 +221,7 @@
       <div class="preview">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <h2 style="margin:0">Invoice Preview</h2>
-          <div class="small muted">Tip: Use Download PDF for a high-quality export</div>
+          <div class="small muted">Tip: Print or Download to get screen‑exact output</div>
         </div>
 
         <div class="invoice" id="invoicePreview" role="document" aria-label="Invoice preview">
@@ -285,6 +291,8 @@ const $ = id => document.getElementById(id);
 const itemsContainer = $('itemsContainer');
 let logoDataUrl = null;
 
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
 function createItemRow(data = {}){
   const {desc='', unitPrice=0, qty=1, discount=0} = data;
   const row = document.createElement('div');
@@ -321,7 +329,6 @@ function formatMoney(value){
   const cur = $('currency') ? $('currency').value || 'INR' : 'INR';
   return currencyFormatter(cur).format(value || 0);
 }
-function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 function calculateTotals(){
   const items = gatherItems();
@@ -407,59 +414,177 @@ $('downloadJson').addEventListener('click', () => {
   URL.revokeObjectURL(url);
 });
 
-$('loadSample').addEventListener('click', () => {
-  loadSample();
-});
+$('loadSample').addEventListener('click', () => { loadSample(); });
 
 /* ---------------------------
-   Print & PDF handlers (reliable)
+   Print: clone + copy computed styles for screen‑exact print
    --------------------------- */
 (function(){
   function el(id){ return document.getElementById(id); }
 
-  const printBtn = el('printBtn');
-  if (printBtn) {
-    printBtn.addEventListener('click', async () => {
-      try {
-        if (typeof updateAll === 'function') updateAll();
-        await new Promise(res => setTimeout(res, 180));
-        const preview = el('invoicePreview');
-        if (!preview) { alert('Invoice preview not found.'); return; }
-        const clone = preview.cloneNode(true);
-        const style = `<style>html,body{margin:0;padding:0;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif}#invoicePreview{box-sizing:border-box;padding:20px;width:100%}table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}img{max-width:100%;height:auto}</style>`;
-        const docHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Print Invoice</title>${style}</head><body><div id="invoicePreview">${clone.innerHTML}</div><script>function doPrint(){ setTimeout(()=>{ window.print(); }, 120); } if (document.readyState === 'complete') doPrint(); else window.onload = doPrint;<\/script></body></html>`;
-        const w = window.open('', '_blank');
-        if (!w) { alert('Popup blocked. Allow popups for this site or use "Download PDF".'); return; }
-        w.document.open(); w.document.write(docHtml); w.document.close();
-      } catch (err) { console.error('Print error:', err); alert('Print failed.'); }
-    });
+  function copyComputedStyles(source, target){
+    const s = window.getComputedStyle(source);
+    let cssText = '';
+    for (let i = 0; i < s.length; i++){
+      const prop = s[i];
+      try { cssText += `${prop}:${s.getPropertyValue(prop)};`; } catch(e){}
+    }
+    target.style.cssText = cssText;
+    // copy children recursively
+    const srcChildren = source.children || [];
+    const tgtChildren = target.children || [];
+    for (let i = 0; i < srcChildren.length; i++){
+      if (tgtChildren[i]) copyComputedStyles(srcChildren[i], tgtChildren[i]);
+    }
   }
 
-  const downloadPdfBtn = el('downloadPdfBtn');
-  if (downloadPdfBtn) {
-    downloadPdfBtn.addEventListener('click', async () => {
-      const btn = downloadPdfBtn; const originalText = btn.textContent;
-      try {
-        btn.disabled = true; btn.textContent = 'Generating...';
-        if (typeof updateAll === 'function') updateAll();
-        await new Promise(res => setTimeout(res, 180));
-        const preview = el('invoicePreview');
-        if (!preview) { alert('Invoice preview not found.'); return; }
-        if (typeof generatePdfFromElement !== 'function') {
-          const w = window.open('', '_blank'); if (!w) { alert('Popup blocked.'); return; }
-          w.document.open(); w.document.write('<html><body>' + preview.innerHTML + '</body></html>'); w.document.close(); return;
-        }
-        const invoiceNoEl = document.getElementById('invoiceNo');
-        const filename = (invoiceNoEl && invoiceNoEl.value) ? invoiceNoEl.value + '.pdf' : 'invoice.pdf';
-        await generatePdfFromElement(preview, filename);
-      } catch (err) { console.error('PDF generation error:', err); alert('PDF generation failed.'); }
-      finally { try { btn.disabled = false; btn.textContent = originalText || 'Download PDF'; } catch(e){} }
-    });
-  }
+  const printBtn = el('printBtn');
+  if (!printBtn) return;
+  printBtn.addEventListener('click', async () => {
+    try {
+      if (typeof updateAll === 'function') updateAll();
+      await new Promise(r => setTimeout(r, 180));
+
+      const preview = el('invoicePreview');
+      if (!preview) { alert('Invoice preview not found.'); return; }
+
+      const clone = preview.cloneNode(true);
+      copyComputedStyles(preview, clone);
+
+      // Ensure images preserved
+      const imgsSrc = preview.querySelectorAll('img');
+      const imgsClone = clone.querySelectorAll('img');
+      imgsSrc.forEach((img, idx) => { try { if (img.src) imgsClone[idx].src = img.src; } catch(e){} });
+
+      // Inline current stylesheet rules (best-effort)
+      let styleSheetsText = '';
+      Array.from(document.styleSheets).forEach(ss => {
+        try {
+          styleSheetsText += Array.from(ss.cssRules || []).map(r => r.cssText).join('\n');
+        } catch(e){}
+      });
+
+      const docHtml = `
+        <!doctype html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <title>Print Invoice</title>
+            <style>
+              ${styleSheetsText}
+              html,body{margin:0;padding:0;background:#fff;color:#000;font-family:inherit}
+              #invoicePreview{box-sizing:border-box;padding:20px;width:100%}
+              table{width:100%;border-collapse:collapse}
+              th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}
+              img{max-width:100%;height:auto}
+            </style>
+          </head>
+          <body>
+            <div id="invoicePreview">${clone.innerHTML}</div>
+            <script>
+              function doPrint(){ setTimeout(()=>{ window.print(); }, 120); }
+              if (document.readyState === 'complete') doPrint(); else window.onload = doPrint;
+            <\/script>
+          </body>
+        </html>
+      `;
+
+      const w = window.open('', '_blank');
+      if (!w) { alert('Popup blocked. Allow popups for this site or use "Download PDF".'); return; }
+      w.document.open(); w.document.write(docHtml); w.document.close();
+
+    } catch (err) {
+      console.error('Print error:', err);
+      alert('Print failed. Try Download PDF or refresh the page.');
+    }
+  });
 })();
 
 /* ---------------------------
-   Build payload, save/load
+   PDF generation: html2canvas + jsPDF (screen‑exact)
+   --------------------------- */
+async function generatePdfFromElement(element, filename){
+  const scale = 2.5; // increase for crisper output; reduce if memory issues
+  const originalWidth = element.offsetWidth;
+  element.style.width = originalWidth + 'px';
+
+  const canvas = await html2canvas(element, {
+    scale,
+    useCORS: true,
+    allowTaint: false,
+    backgroundColor: '#ffffff',
+    logging: false,
+    windowWidth: document.documentElement.clientWidth,
+    windowHeight: document.documentElement.clientHeight
+  });
+
+  const imgData = canvas.toDataURL('image/png');
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF('p','pt','a4');
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+
+  const canvasWidth = canvas.width;
+  const canvasHeight = canvas.height;
+  const pxToPt = pageWidth / canvasWidth;
+  const imgHeightInPt = canvasHeight * pxToPt;
+
+  if (imgHeightInPt <= pageHeight){
+    pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, imgHeightInPt);
+  } else {
+    let remainingHeight = canvasHeight;
+    let position = 0;
+    const pageCanvas = document.createElement('canvas');
+    const pageCtx = pageCanvas.getContext('2d');
+    while (remainingHeight > 0){
+      const sliceHeight = Math.min(canvasHeight - position, Math.floor(pageHeight / pxToPt));
+      pageCanvas.width = canvasWidth;
+      pageCanvas.height = sliceHeight;
+      pageCtx.clearRect(0,0,pageCanvas.width,pageCanvas.height);
+      pageCtx.drawImage(canvas, 0, position, canvasWidth, sliceHeight, 0, 0, canvasWidth, sliceHeight);
+      const pageData = pageCanvas.toDataURL('image/png');
+      const pageImgHeightPt = sliceHeight * pxToPt;
+      pdf.addImage(pageData, 'PNG', 0, 0, pageWidth, pageImgHeightPt);
+      remainingHeight -= sliceHeight;
+      position += sliceHeight;
+      if (remainingHeight > 0) pdf.addPage();
+    }
+  }
+
+  pdf.save(filename);
+  element.style.width = '';
+}
+
+/* Download PDF handler */
+(function(){
+  const btn = document.getElementById('downloadPdfBtn');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    try {
+      btn.disabled = true;
+      const originalText = btn.textContent;
+      btn.textContent = 'Generating...';
+      if (typeof updateAll === 'function') updateAll();
+      await new Promise(r => setTimeout(r, 180));
+      const preview = document.getElementById('invoicePreview');
+      if (!preview) { alert('Invoice preview not found.'); return; }
+      if (typeof generatePdfFromElement !== 'function') { alert('PDF generator missing. Use Print.'); return; }
+      const invoiceNoEl = document.getElementById('invoiceNo');
+      const filename = (invoiceNoEl && invoiceNoEl.value) ? invoiceNoEl.value + '.pdf' : 'invoice.pdf';
+      await generatePdfFromElement(preview, filename);
+      btn.textContent = originalText || 'Download PDF';
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      alert('PDF generation failed. Try Print as an alternative.');
+    } finally {
+      try { btn.disabled = false; } catch(e){}
+    }
+  });
+})();
+
+/* ---------------------------
+   Build payload, save/load, reset
    --------------------------- */
 function buildPayload(){
   const {items, subtotal, totalDiscount, taxAmount, grandTotal} = calculateTotals();
@@ -499,28 +624,15 @@ function loadLast(){
   } catch(e){ console.error('loadLast error:', e); return false; }
 }
 
-/* ---------------------------
-   Reset function and handler
-   - Clears all fields, logo, items, and removes saved localStorage keys starting with luxinvoice_
-   --------------------------- */
+/* Reset */
 function resetAll(){
   try {
-    // Clear all form fields
     const fields = ['companyName','companyMeta','clientName','clientMeta','invoiceNo','invoiceDate','dueDate','paymentTerms','currency','taxRate','bankDetails','notes','status'];
     fields.forEach(id => { const el = document.getElementById(id); if(el) { if(el.tagName === 'SELECT') el.selectedIndex = 0; else el.value = ''; } });
-
-    // Clear logo
     logoDataUrl = null;
-    const logoEl = document.getElementById('logoPreview');
-    if (logoEl) { logoEl.style.backgroundImage = ''; logoEl.textContent = 'LI'; }
-
-    // Clear items
+    const logoEl = document.getElementById('logoPreview'); if (logoEl) { logoEl.style.backgroundImage = ''; logoEl.textContent = 'LI'; }
     if (itemsContainer) itemsContainer.innerHTML = '';
-
-    // Optionally create one empty row so UI isn't totally blank (comment out if not wanted)
-    // createItemRow({desc:'', unitPrice:0, qty:1, discount:0});
-
-    // Remove saved invoices from localStorage that start with 'luxinvoice_'
+    // Remove saved localStorage keys starting with luxinvoice_
     try {
       const keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
@@ -530,26 +642,13 @@ function resetAll(){
       keysToRemove.forEach(k => localStorage.removeItem(k));
       localStorage.removeItem('luxinvoice_last_payload');
       localStorage.removeItem('luxinvoice_last');
-    } catch (lsErr) {
-      console.warn('Could not clear localStorage keys:', lsErr);
-    }
-
-    // Update preview
+    } catch (lsErr) { console.warn('Could not clear localStorage keys:', lsErr); }
     if (typeof updateAll === 'function') updateAll();
-
-    // Feedback (optional)
-    // alert('All fields cleared and saved invoices removed.');
-  } catch (err) {
-    console.error('resetAll error:', err);
-    alert('Reset failed. Check console for details.');
-  }
+  } catch (err) { console.error('resetAll error:', err); alert('Reset failed.'); }
 }
-
-// Attach reset button handler
 (function attachResetHandler(){
   const btn = document.getElementById('resetBtn');
   if (!btn) return;
-  // Remove existing listeners by replacing node
   const clone = btn.cloneNode(true);
   btn.parentNode.replaceChild(clone, btn);
   clone.addEventListener('click', () => {
@@ -559,9 +658,7 @@ function resetAll(){
   });
 })();
 
-/* ---------------------------
-   Sample loader and init
-   --------------------------- */
+/* Sample loader and init */
 function applyPayload(p){
   if(!p) return;
   $('companyName').value = p.companyName || '';
@@ -610,21 +707,14 @@ function loadSample(){
 
 /* Init */
 (function init(){
-  // Default dates
   $('invoiceDate').valueAsDate = new Date();
   const due = new Date(); due.setDate(due.getDate()+30); $('dueDate').valueAsDate = due;
-
-  // Start with one empty item row
   createItemRow({desc:'', unitPrice:0, qty:1, discount:0});
   updateAll();
-
-  // Wire up input listeners
   ['companyName','companyMeta','clientName','clientMeta','invoiceNo','invoiceDate','dueDate','paymentTerms','taxRate','bankDetails','notes','status','currency'].forEach(id=>{
     const el = document.getElementById(id);
     if(el){ el.addEventListener('input', updateAll); el.addEventListener('change', updateAll); }
   });
-
-  // Periodic autosave of last payload
   setInterval(()=>{ try { saveLast(buildPayload()); localStorage.setItem('luxinvoice_last_payload', JSON.stringify(buildPayload())); } catch(e){} }, 5000);
 })();
 </script>
