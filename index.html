@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Advanced Invoice Generator</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+body{
+font-family:Arial;
+background:#f4f6fb;
+margin:0;
+padding:20px;
+}
+
+.container{
+max-width:1100px;
+margin:auto;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 5px 15px rgba(0,0,0,0.05);
+}
+
+input{
+width:100%;
+padding:8px;
+margin-top:5px;
+margin-bottom:10px;
+}
+
+button{
+padding:10px 15px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+.primary{
+background:#0ea5a4;
+color:white;
+}
+
+.items{
+margin-top:10px;
+}
+
+.item{
+display:grid;
+grid-template-columns:2fr 1fr 1fr 40px;
+gap:5px;
+margin-bottom:5px;
+}
+
+.invoice{
+background:white;
+padding:20px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:15px;
+}
+
+th,td{
+border-bottom:1px solid #eee;
+padding:8px;
+text-align:left;
+}
+
+.history{
+margin-top:20px;
+}
+
+.logo{
+max-height:60px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h2>Advanced Invoice Generator</h2>
+
+<div class="container">
+
+<div class="card">
+
+<label>Company Name</label>
+<input id="company" value="My Company">
+
+<label>Client Name</label>
+<input id="client" value="Client">
+
+<label>Invoice Number</label>
+<input id="number" value="INV-001">
+
+<label>Date</label>
+<input id="date" type="date">
+
+<label>Upload Logo</label>
+<input type="file" id="logoUpload">
+
+<h3>Items</h3>
+
+<div id="items"></div>
+
+<button onclick="addItem()">Add Item</button>
+
+<label>Tax %</label>
+<input id="tax" type="number" value="18">
+
+<label>Discount</label>
+<input id="discount" type="number" value="0">
+
+<br><br>
+
+<button class="primary" onclick="generatePDF()">Download PDF</button>
+<button onclick="saveInvoice()">Save Invoice</button>
+
+</div>
+
+
+<div class="card">
+
+<div id="invoicePreview" class="invoice">
+
+<div style="display:flex;justify-content:space-between">
+<div>
+<img id="logoPreview" class="logo">
+<h3 id="pCompany"></h3>
+</div>
+
+<div>
+<b>Invoice</b><br>
+No: <span id="pNumber"></span><br>
+Date: <span id="pDate"></span>
+</div>
+</div>
+
+<br>
+
+<b>Bill To:</b>
+<div id="pClient"></div>
+
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Price</th>
+<th>Qty</th>
+<th>Total</th>
+</tr>
+</thead>
+
+<tbody id="tableBody"></tbody>
+</table>
+
+<br>
+
+<div>
+Subtotal: <span id="pSubtotal"></span><br>
+Tax: <span id="pTax"></span><br>
+Discount: <span id="pDiscount"></span><br>
+<h3>Total: <span id="pTotal"></span></h3>
+</div>
+
+</div>
+
+<div class="history">
+<h3>Saved Invoices</h3>
+<ul id="historyList"></ul>
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+let items=[]
+
+function addItem(desc="",price=0,qty=1){
+
+let container=document.getElementById("items")
+
+let div=document.createElement("div")
+div.className="item"
+
+div.innerHTML=`
+<input class="desc" placeholder="Service" value="${desc}">
+<input class="price" type="number" value="${price}">
+<input class="qty" type="number" value="${qty}">
+<button onclick="this.parentElement.remove();update()">X</button>
+`
+
+container.appendChild(div)
+
+div.querySelectorAll("input").forEach(i=>i.addEventListener("input",update))
+
+update()
+}
+
+function currency(v){
+return "₹"+v.toFixed(2)
+}
+
+function update(){
+
+let rows=document.querySelectorAll(".item")
+
+let body=document.getElementById("tableBody")
+
+body.innerHTML=""
+
+let subtotal=0
+
+rows.forEach(r=>{
+
+let desc=r.querySelector(".desc").value
+let price=parseFloat(r.querySelector(".price").value)||0
+let qty=parseFloat(r.querySelector(".qty").value)||0
+
+let total=price*qty
+
+subtotal+=total
+
+let tr=document.createElement("tr")
+
+tr.innerHTML=`
+<td>${desc}</td>
+<td>${currency(price)}</td>
+<td>${qty}</td>
+<td>${currency(total)}</td>
+`
+
+body.appendChild(tr)
+
+})
+
+let taxRate=parseFloat(document.getElementById("tax").value)||0
+let discount=parseFloat(document.getElementById("discount").value)||0
+
+let tax=subtotal*(taxRate/100)
+
+let total=subtotal+tax-discount
+
+document.getElementById("pSubtotal").innerText=currency(subtotal)
+document.getElementById("pTax").innerText=currency(tax)
+document.getElementById("pDiscount").innerText=currency(discount)
+document.getElementById("pTotal").innerText=currency(total)
+
+document.getElementById("pCompany").innerText=document.getElementById("company").value
+document.getElementById("pClient").innerText=document.getElementById("client").value
+document.getElementById("pNumber").innerText=document.getElementById("number").value
+document.getElementById("pDate").innerText=document.getElementById("date").value
+
+}
+
+function generatePDF(){
+
+let element=document.getElementById("invoicePreview")
+
+html2pdf().from(element).save("invoice.pdf")
+
+}
+
+function saveInvoice(){
+
+let data={
+number:document.getElementById("number").value,
+client:document.getElementById("client").value
+}
+
+let list=JSON.parse(localStorage.getItem("invoices")||"[]")
+
+list.push(data)
+
+localStorage.setItem("invoices",JSON.stringify(list))
+
+loadHistory()
+
+}
+
+function loadHistory(){
+
+let list=JSON.parse(localStorage.getItem("invoices")||"[]")
+
+let ul=document.getElementById("historyList")
+
+ul.innerHTML=""
+
+list.forEach(i=>{
+
+let li=document.createElement("li")
+
+li.innerText=i.number+" - "+i.client
+
+ul.appendChild(li)
+
+})
+
+}
+
+document.getElementById("logoUpload").addEventListener("change",function(e){
+
+let reader=new FileReader()
+
+reader.onload=function(){
+
+document.getElementById("logoPreview").src=reader.result
+
+}
+
+reader.readAsDataURL(e.target.files[0])
+
+})
+
+document.querySelectorAll("input").forEach(i=>i.addEventListener("input",update))
+
+addItem("Website Design",15000,1)
+
+loadHistory()
+
+update()
+
+</script>
+
+</body>
+</html>
