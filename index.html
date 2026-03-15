@@ -1,424 +1,123 @@
-`html
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Simple Invoice Generator — PDF Fix</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Luxurious Invoice Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#f6f7fb; --card:#fff; --muted:#6b7280; --accent:#0f172a;
-    --primary:#0ea5a4; --danger:#ef4444; --radius:10px;
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  }
-  body{margin:0;background:linear-gradient(180deg,#eef2ff 0%,var(--bg) 100%);color:var(--accent);padding:24px;}
-  .container{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 420px;gap:20px;}
-  header{grid-column:1/-1;margin-bottom:6px}
-  h1{margin:0;font-size:20px}
-  p.lead{margin:6px 0 0;color:var(--muted);font-size:13px}
-  .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:0 6px 18px rgba(12,15,30,0.06)}
-  .form-row{display:flex;gap:10px;margin-bottom:10px}
-  .form-row .field{flex:1;display:flex;flex-direction:column}
-  label{font-size:12px;color:var(--muted);margin-bottom:6px}
-  input[type="text"], input[type="number"], input[type="date"], select{
-    padding:10px;border:1px solid #e6e9ef;border-radius:8px;font-size:14px;background:#fff;
-  }
-  .items{margin-top:10px;border-radius:8px;overflow:hidden;border:1px solid #eef2ff}
-  .items header{display:grid;grid-template-columns:2fr 1fr 1fr 40px;background:#f8fafc;padding:10px 12px;font-weight:600;color:var(--muted);font-size:13px}
-  .item-row{display:grid;grid-template-columns:2fr 1fr 1fr 40px;gap:8px;padding:10px 12px;align-items:center;border-top:1px solid #f1f5f9}
-  .item-row input{width:100%;padding:8px;border:1px solid #eef2ff;border-radius:6px}
-  .item-row .remove{background:transparent;border:0;color:var(--danger);cursor:pointer;font-weight:700}
-  .controls{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
-  .btn{padding:10px 14px;border-radius:8px;border:0;cursor:pointer;font-weight:600}
-  .btn.primary{background:var(--primary);color:#fff}
-  .btn.ghost{background:transparent;border:1px solid #e6e9ef;color:var(--accent)}
-  .summary{display:flex;flex-direction:column;gap:12px}
-  .summary .row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed #f1f5f9}
-  .summary .row.total{font-size:18px;font-weight:700;border-top:1px solid #eef2ff}
-  .preview{display:flex;flex-direction:column;gap:12px}
-  .invoice{padding:22px;background:#fff;border-radius:8px;border:1px solid #eef2ff}
-  .invoice .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-  .invoice h2{margin:0;font-size:20px}
-  .meta{font-size:13px;color:var(--muted)}
-  .inv-table{width:100%;border-collapse:collapse;margin-top:14px}
-  .inv-table th, .inv-table td{padding:10px;border-bottom:1px solid #f1f5f9;text-align:left}
-  .inv-table th{background:#fafafa;font-weight:600;color:var(--muted);font-size:13px}
-  .inv-footer{display:flex;justify-content:flex-end;margin-top:12px}
-  .small{font-size:12px;color:var(--muted)}
-  @media (max-width:980px){
-    .container{grid-template-columns:1fr; padding:12px}
-    .card{padding:14px}
-  }
-  @media print{
-    body{background:#fff;padding:0}
-    .container, .controls, .btn, header p.lead{display:none}
-    .invoice{box-shadow:none;border:none;border-radius:0;margin:0}
-  }
+  body {margin:0; font-family:'Poppins',sans-serif; background:linear-gradient(135deg,#fdfcfb,#e2d1c3); color:#222;}
+  h1,h2 {font-family:'Playfair Display',serif;}
+  .container {max-width:1200px; margin:auto; padding:20px; display:grid; grid-template-columns:1fr 400px; gap:20px;}
+  .card {background:#fff; border-radius:12px; padding:20px; box-shadow:0 8px 24px rgba(0,0,0,0.08);}
+  label {font-size:13px; color:#555; margin-bottom:6px; display:block;}
+  input {width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; margin-bottom:12px;}
+  .btn {padding:12px 18px; border:none; border-radius:8px; cursor:pointer; font-weight:600;}
+  .btn.primary {background:linear-gradient(90deg,#d4af37,#f5d76e); color:#222;}
+  .btn.ghost {background:#fff; border:1px solid #ccc;}
+  .items {margin-top:10px;}
+  .item-row {display:grid; grid-template-columns:2fr 1fr 1fr 40px; gap:8px; margin-bottom:10px;}
+  .item-row input {margin:0;}
+  .remove {background:none; border:none; color:#b00; font-size:18px; cursor:pointer;}
+  .summary {margin-top:20px;}
+  .summary div {display:flex; justify-content:space-between; margin:6px 0;}
+  .summary .total {font-size:18px; font-weight:700;}
+  .invoice {padding:20px; border:1px solid #eee; border-radius:12px; background:#fff;}
+  .invoice .top {display:flex; justify-content:space-between;}
+  .inv-table {width:100%; border-collapse:collapse; margin-top:12px;}
+  .inv-table th, .inv-table td {padding:10px; border-bottom:1px solid #eee;}
+  @media(max-width:900px){.container{grid-template-columns:1fr;}}
+  @media print{body{background:#fff;padding:0}.container,.btn{display:none}.invoice{box-shadow:none;border:none}}
 </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>Invoice Generator</h1>
-      <p class="lead">Create, preview and print/save invoice as PDF. Minimal responsive UI.</p>
-    </header>
+<div class="container">
+  <!-- Left: Form -->
+  <section class="card">
+    <h2>Invoice Details</h2>
+    <label>Company Name</label><input id="companyName" type="text" value="Luxury Corp">
+    <label>Client Name</label><input id="clientName" type="text" value="Client Co.">
+    <label>Invoice Number</label><input id="invoiceNo" type="text" value="INV-001">
+    <label>Date</label><input id="invoiceDate" type="date">
+    <h3>Line Items</h3>
+    <div id="itemsContainer"></div>
+    <button id="addItem" class="btn ghost">+ Add Item</button>
+    <div style="margin-top:12px; display:flex; gap:10px;">
+      <button id="printBtn" class="btn primary">Print</button>
+      <button id="downloadPdfBtn" class="btn ghost">Download PDF</button>
+    </div>
+  </section>
 
-    <!-- Left: Form -->
-    <section class="card" aria-label="Invoice form">
-      <div class="form-row">
-        <div class="field">
-          <label>Company Name</label>
-          <input id="companyName" type="text" placeholder="Your company or freelancer name" value="Acme Solutions"/>
-        </div>
-        <div class="field">
-          <label>Client Name</label>
-          <input id="clientName" type="text" placeholder="Client or company name" value="Client Co."/>
-        </div>
-      </div>
+  <!-- Right: Summary -->
+  <aside class="card">
+    <h2>Summary</h2>
+    <label>Tax (%)</label><input id="taxRate" type="number" value="18">
+    <div class="summary">
+      <div><span>Subtotal</span><span id="subtotal">₹0.00</span></div>
+      <div><span>Tax</span><span id="taxAmount">₹0.00</span></div>
+      <div class="total"><span>Total</span><span id="grandTotal">₹0.00</span></div>
+    </div>
+  </aside>
 
-      <div class="form-row">
-        <div class="field">
-          <label>Invoice Number</label>
-          <input id="invoiceNo" type="text" placeholder="INV-001" value="INV-2026-001"/>
-        </div>
-        <div class="field">
-          <label>Date</label>
-          <input id="invoiceDate" type="date" value="" />
-        </div>
-      </div>
-
-      <div>
-        <label style="display:block;margin-bottom:8px">Line Items</label>
-        <div class="items" id="itemsContainer">
-          <header>
-            <div>Service / Description</div>
-            <div>Price</div>
-            <div>Qty</div>
-            <div></div>
-          </header>
-        </div>
-
-        <div class="controls">
-          <div>
-            <button id="addItem" class="btn ghost">+ Add Item</button>
-          </div>
-          <div style="display:flex;gap:8px">
-            <button id="resetBtn" class="btn">Reset</button>
-            <button id="saveBtn" class="btn primary">Save Preview</button>
-          </div>
+  <!-- Full-width Preview -->
+  <section class="card" style="grid-column:1/-1">
+    <h2>Invoice Preview</h2>
+    <div class="invoice" id="invoicePreview">
+      <div class="top">
+        <div><h2 id="previewCompany">Luxury Corp</h2></div>
+        <div style="text-align:right">
+          <div>No: <span id="previewInvNo">INV-001</span></div>
+          <div>Date: <span id="previewDate">-</span></div>
         </div>
       </div>
-    </section>
+      <div style="margin-top:12px">Bill To: <strong id="previewClient">Client Co.</strong></div>
+      <table class="inv-table"><thead><tr><th>Description</th><th>Price</th><th>Qty</th><th>Amount</th></tr></thead><tbody id="invBody"></tbody></table>
+      <div style="text-align:right; margin-top:12px; font-weight:700">Total: <span id="pTotal">₹0.00</span></div>
+    </div>
+  </section>
+</div>
 
-    <!-- Right: Preview & Summary -->
-    <aside class="card">
-      <div class="summary">
-        <div>
-          <label style="display:block;margin-bottom:6px">Tax (%)</label>
-          <input id="taxRate" type="number" min="0" step="0.1" value="18" />
-        </div>
-
-        <div class="row small" style="display:flex;flex-direction:column;gap:6px">
-          <div style="display:flex;justify-content:space-between"><span>Subtotal</span><span id="subtotal">₹0.00</span></div>
-          <div style="display:flex;justify-content:space-between"><span>Tax</span><span id="taxAmount">₹0.00</span></div>
-          <div class="row total" style="display:flex;justify-content:space-between"><span>Total</span><span id="grandTotal">₹0.00</span></div>
-        </div>
-
-        <div style="display:flex;gap:8px;margin-top:12px">
-          <button id="printBtn" class="btn primary" title="Print or Save as PDF">Print</button>
-          <button id="downloadPdfBtn" class="btn ghost" title="Download invoice as PDF">Download PDF</button>
-          <button id="downloadJson" class="btn ghost">Download JSON</button>
-        </div>
-
-        <div style="margin-top:12px" class="small">
-          <strong>Tip:</strong> Print opens the browser print dialog. Download PDF uses an in-page renderer for reliable PDF output.
-        </div>
-      </div>
-    </aside>
-
-    <!-- Full-width preview for printing -->
-    <section class="card" style="grid-column:1/-1">
-      <div class="preview">
-        <div class="invoice" id="invoicePreview" role="document" aria-label="Invoice preview">
-          <div class="top">
-            <div>
-              <h2 id="previewCompany">Company Name</h2>
-              <div class="meta" id="previewCompanyMeta">Address • Phone • Email</div>
-            </div>
-            <div style="text-align:right">
-              <div><strong>Invoice</strong></div>
-              <div class="meta">No: <span id="previewInvNo">-</span></div>
-              <div class="meta">Date: <span id="previewDate">-</span></div>
-            </div>
-          </div>
-
-          <div style="display:flex;justify-content:space-between;margin-top:12px">
-            <div>
-              <div class="small">Bill To</div>
-              <div id="previewClient" style="font-weight:600">Client Name</div>
-            </div>
-            <div style="text-align:right" class="small">
-              <div>Subtotal: <span id="pSubtotal">₹0.00</span></div>
-              <div>Tax: <span id="pTax">₹0.00</span></div>
-              <div style="font-weight:700;margin-top:6px">Total: <span id="pTotal">₹0.00</span></div>
-            </div>
-          </div>
-
-          <table class="inv-table" id="invTable" aria-hidden="false">
-            <thead>
-              <tr><th style="width:60%">Description</th><th style="width:15%">Price</th><th style="width:10%">Qty</th><th style="width:15%">Amount</th></tr>
-            </thead>
-            <tbody id="invBody"></tbody>
-          </table>
-
-          <div class="inv-footer small">
-            <div style="max-width:600px;text-align:left">
-              <div>Notes:</div>
-              <div id="notes" style="color:var(--muted)">Thank you for your business.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
-
-<!-- Libraries for reliable client-side PDF generation -->
-<!-- html2canvas and jsPDF are loaded from CDN. They run entirely in the browser. -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNa5m3b2r0q0kq6zq3kqgq1q3q6q3q6q3q6q3q6q3q6q3q6q3q6q3q6q3q6q3q6q" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-+q2k1k1k1k1k1k1k1k1k1k1k1k1k1k1k1k1k1k1k1k1k1k1k1k1k1k1k1k1k1k1" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
+<!-- PDF libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-  // Utility
-  const $ = id => document.getElementById(id);
-  const formatCurrency = (v) => {
-    const locale = navigator.language || 'en-IN';
-    const currency = (locale && locale.startsWith('en-IN')) ? 'INR' : 'USD';
-    return new Intl.NumberFormat(locale, { style: 'currency', currency, maximumFractionDigits:2 }).format(v);
-  };
-
-  // Elements
-  const itemsContainer = $('itemsContainer');
-  const addItemBtn = $('addItem');
-  const subtotalEl = $('subtotal');
-  const taxRateEl = $('taxRate');
-  const taxAmountEl = $('taxAmount');
-  const grandTotalEl = $('grandTotal');
-  const invBody = $('invBody');
-  const pSubtotal = $('pSubtotal');
-  const pTax = $('pTax');
-  const pTotal = $('pTotal');
-  const previewCompany = $('previewCompany');
-  const previewClient = $('previewClient');
-  const previewInvNo = $('previewInvNo');
-  const previewDate = $('previewDate');
-  const companyNameInput = $('companyName');
-  const clientNameInput = $('clientName');
-  const invoiceNoInput = $('invoiceNo');
-  const invoiceDateInput = $('invoiceDate');
-  const printBtn = $('printBtn');
-  const resetBtn = $('resetBtn');
-  const saveBtn = $('saveBtn');
-  const downloadJson = $('downloadJson');
-  const downloadPdfBtn = $('downloadPdfBtn');
-
-  // Initialize date to today
-  invoiceDateInput.valueAsDate = new Date();
-
-  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]); }
-
-  function createItemRow(item = {desc:'', price:0, qty:1}){
-    const row = document.createElement('div');
-    row.className = 'item-row';
-    row.innerHTML = `
-      <input class="desc" type="text" placeholder="Service description" value="${escapeHtml(item.desc)}" />
-      <input class="price" type="number" min="0" step="0.01" value="${item.price}" />
-      <input class="qty" type="number" min="0" step="1" value="${item.qty}" />
-      <button class="remove" title="Remove">✕</button>
-    `;
-    row.querySelector('.price').addEventListener('input', updateAll);
-    row.querySelector('.qty').addEventListener('input', updateAll);
-    row.querySelector('.desc').addEventListener('input', updateAll);
-    row.querySelector('.remove').addEventListener('click', () => {
-      row.remove();
-      updateAll();
-    });
-    itemsContainer.appendChild(row);
-    return row;
-  }
-
-  function gatherItems(){
-    const rows = itemsContainer.querySelectorAll('.item-row');
-    const arr = [];
-    rows.forEach(r=>{
-      const desc = r.querySelector('.desc').value.trim();
-      const price = parseFloat(r.querySelector('.price').value) || 0;
-      const qty = parseFloat(r.querySelector('.qty').value) || 0;
-      if(desc || price || qty) arr.push({desc, price, qty});
-    });
-    return arr;
-  }
-
-  function calculate(){
-    const arr = gatherItems();
-    let subtotal = 0;
-    arr.forEach(it => subtotal += (it.price * it.qty));
-    const taxRate = parseFloat(taxRateEl.value) || 0;
-    const taxAmount = subtotal * (taxRate/100);
-    const total = subtotal + taxAmount;
-    return {arr, subtotal, taxAmount, total};
-  }
-
-  function updateAll(){
-    const {arr, subtotal, taxAmount, total} = calculate();
-    subtotalEl.textContent = formatCurrency(subtotal);
-    taxAmountEl.textContent = formatCurrency(taxAmount);
-    grandTotalEl.textContent = formatCurrency(total);
-
-    previewCompany.textContent = companyNameInput.value || 'Company Name';
-    previewClient.textContent = clientNameInput.value || 'Client Name';
-    previewInvNo.textContent = invoiceNoInput.value || '-';
-    previewDate.textContent = invoiceDateInput.value || '-';
-
-    invBody.innerHTML = '';
-    arr.forEach(it=>{
-      const tr = document.createElement('tr');
-      const amount = it.price * it.qty;
-      tr.innerHTML = <td>${escapeHtml(it.desc)}</td><td>${formatCurrency(it.price)}</td><td>${it.qty}</td><td>${formatCurrency(amount)}</td>;
-      invBody.appendChild(tr);
-    });
-
-    pSubtotal.textContent = formatCurrency(subtotal);
-    pTax.textContent = formatCurrency(taxAmount);
-    pTotal.textContent = formatCurrency(total);
-  }
-
-  // Initialize with sample rows
-  function init(){
-    itemsContainer.querySelectorAll('.item-row').forEach(n=>n.remove());
-    createItemRow({desc:'Website design', price:15000, qty:1});
-    createItemRow({desc:'Hosting (12 months)', price:2000, qty:1});
-    updateAll();
-  }
-
-  addItemBtn.addEventListener('click', (e)=>{
-    e.preventDefault();
-    createItemRow();
-  });
-
-  taxRateEl.addEventListener('input', updateAll);
-  companyNameInput.addEventListener('input', updateAll);
-  clientNameInput.addEventListener('input', updateAll);
-  invoiceNoInput.addEventListener('input', updateAll);
-  invoiceDateInput.addEventListener('input', updateAll);
-
-  printBtn.addEventListener('click', () => {
-    // Use browser print dialog
-    window.print();
-  });
-
-  resetBtn.addEventListener('click', () => {
-    if(!confirm('Reset invoice to default sample?')) return;
-    companyNameInput.value = 'Acme Solutions';
-    clientNameInput.value = 'Client Co.';
-    invoiceNoInput.value = 'INV-2026-001';
-    invoiceDateInput.valueAsDate = new Date();
-    taxRateEl.value = 18;
-    init();
-  });
-
-  saveBtn.addEventListener('click', () => {
-    const payload = buildPayload();
-    localStorage.setItem('invoice_preview', JSON.stringify(payload));
-    alert('Preview saved locally. Use Download JSON to export.');
-  });
-
-  downloadJson.addEventListener('click', () => {
-    const payload = buildPayload();
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = (payload.invoiceNo || 'invoice') + '.json';
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
-  });
-
-  function buildPayload(){
-    const {arr, subtotal, taxAmount, total} = calculate();
-    return {
-      company: companyNameInput.value,
-      client: clientNameInput.value,
-      invoiceNo: invoiceNoInput.value,
-      date: invoiceDateInput.value,
-      taxRate: parseFloat(taxRateEl.value) || 0,
-      items: arr,
-      subtotal, taxAmount, total,
-      notes: 'Thank you for your business.'
-    };
-  }
-
-  // PDF generation: reliable client-side approach using html2canvas + jsPDF
-  // This handles multi-page content and high-DPI rendering.
-  async function downloadPdf() {
-    try {
-      const invoiceEl = $('invoicePreview');
-
-      // Temporarily scale for better quality on PDF
-      const originalWidth = invoiceEl.offsetWidth;
-      const scale = 2; // increase for higher quality (may increase memory)
-      const opts = {
-        scale,
-        useCORS: true,
-        backgroundColor: '#ffffff'
-      };
-
-      // Render to canvas
-      const canvas = await html2canvas(invoiceEl, opts);
-
-      // Convert canvas to image data
-      const imgData = canvas.toDataURL('image/png');
-
-      // Create jsPDF instance with orientation based on width/height
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({
-        orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
-        unit: 'px',
-        format: [canvas.width, canvas.height]
-      });
-
-      // Add image to PDF (fits exactly)
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-
-      // If content is taller than one page, split into pages
-      // We'll create a standard A4 page size in px at 96 DPI for splitting
-      const a4px = { width: 595, height: 842 }; // jsPDF default units 'pt' but we used px; we'll convert using ratio
-      // Instead of complex splitting, export the single large canvas as a single PDF page sized to content.
-      // Save file
-      const filename = (invoiceNoInput.value || 'invoice') + '.pdf';
-      pdf.save(filename);
-    } catch (err) {
-      console.error('PDF generation error', err);
-      alert('PDF generation failed. Try using the Print button as an alternative.');
-    }
-  }
-
-  downloadPdfBtn.addEventListener('click', async () => {
-    // Disable button while generating
-    downloadPdfBtn.disabled = true;
-    downloadPdfBtn.textContent = 'Generating...';
-    // Small delay to allow UI to update
-    setTimeout(async () => {
-      await downloadPdf();
-      downloadPdfBtn.disabled = false;
-      downloadPdfBtn.textContent = 'Download PDF';
-    }, 100);
-  });
-
-  // Initialize UI
-  init();
-
-  // Keep preview updated periodically
-  setInterval(updateAll, 700);
+const $=id=>document.getElementById(id);
+function formatCurrency(v){return new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR'}).format(v);}
+function createItemRow(desc='',price=0,qty=1){
+  const row=document.createElement('div');row.className='item-row';
+  row.innerHTML=`<input class="desc" placeholder="Service" value="${desc}"><input class="price" type="number" value="${price}"><input class="qty" type="number" value="${qty}"><button class="remove">×</button>`;
+  row.querySelector('.remove').onclick=()=>{row.remove();updateAll();};
+  ['desc','price','qty'].forEach(cls=>row.querySelector('.'+cls).oninput=updateAll);
+  $('itemsContainer').appendChild(row);
+}
+function gatherItems(){
+  return [...document.querySelectorAll('.item-row')].map(r=>({desc:r.querySelector('.desc').value,price:parseFloat(r.querySelector('.price').value)||0,qty:parseFloat(r.querySelector('.qty').value)||0}));
+}
+function updateAll(){
+  const items=gatherItems();let subtotal=0;items.forEach(i=>subtotal+=i.price*i.qty);
+  const taxRate=parseFloat($('taxRate').value)||0;const tax=subtotal*taxRate/100;const total=subtotal+tax;
+  $('subtotal').textContent=formatCurrency(subtotal);$('taxAmount').textContent=formatCurrency(tax);$('grandTotal').textContent=formatCurrency(total);
+  $('previewCompany').textContent=$('companyName').value;$('previewClient').textContent=$('clientName').value;$('previewInvNo').textContent=$('invoiceNo').value;$('previewDate').textContent=$('invoiceDate').value;
+  const tbody=$('invBody');tbody.innerHTML='';items.forEach(i=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${i.desc}</td><td>${formatCurrency(i.price)}</td><td>${i.qty}</td><td>${formatCurrency(i.price*i.qty)}</td>`;tbody.appendChild(tr);});
+  $('pTotal').textContent=formatCurrency(total);
+}
+$('addItem').onclick=()=>createItemRow();
+createItemRow('Consulting',5000,1);
+updateAll();
+$('printBtn').onclick=()=>window.print();
+$('downloadPdfBtn').onclick=async()=>{
+  const invoiceEl=$('invoicePreview');
+  const canvas=await html2canvas(invoiceEl,{scale:2});
+  const imgData=canvas.toDataURL('image/png');
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF('p','pt','a4');
+  const pageWidth=pdf.internal.pageSize.getWidth();
+  const pageHeight=pdf.internal.pageSize.getHeight();
+  const imgWidth=pageWidth;
+  const imgHeight=canvas.height*pageWidth/canvas.width;
+  pdf.addImage(imgData,'PNG',0,0,imgWidth,imgHeight);
+  pdf.save(($('invoiceNo').value||'invoice')+'.pdf');
+};
 </script>
 </body>
 </html>
-`
