@@ -403,95 +403,62 @@ function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;
    - Stores each invoice as a separate record (id keyPath)
    - Provides page reads for pagination (newest first)
    ============================ */
-/* ===== Improved IndexedDB wrapper ===== */
 function openInvoicesDB() {
   return new Promise((resolve, reject) => {
-    try {
-      const req = indexedDB.open('InvoicesDB', 1);
-      req.onupgradeneeded = (e) => {
-        const db = e.target.result;
-        if (!db.objectStoreNames.contains('invoices')) {
-          const store = db.createObjectStore('invoices', { keyPath: 'id' });
-          // index on savedAt for newest-first queries
-          store.createIndex('byDate', 'savedAt', { unique: false });
-          // if you want to query by client name, index the nested path 'client.name'
-          store.createIndex('byClient', 'client.name', { unique: false });
-        } else {
-          // ensure indexes exist (safe-guard)
-          const store = e.target.transaction.objectStore('invoices');
-          if (!store.indexNames.contains('byDate')) store.createIndex('byDate', 'savedAt', { unique: false });
-          if (!store.indexNames.contains('byClient')) store.createIndex('byClient', 'client.name', { unique: false });
-        }
-      };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error || new Error('IndexedDB open failed'));
-    } catch (err) {
-      reject(err);
-    }
+    const req = indexedDB.open('InvoicesDB', 1);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('invoices')) {
+        const store = db.createObjectStore('invoices', { keyPath: 'id' });
+        store.createIndex('byDate', 'savedAt', { unique: false });
+        store.createIndex('byClient', 'clientName', { unique: false });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
   });
 }
 
 async function idbSaveInvoice(invoice) {
-  if (!invoice || typeof invoice !== 'object') throw new Error('Invalid invoice payload');
   const db = await openInvoicesDB();
   return new Promise((resolve, reject) => {
-    try {
-      const tx = db.transaction('invoices', 'readwrite');
-      const store = tx.objectStore('invoices');
-      const putReq = store.put(invoice);
-      putReq.onsuccess = (e) => resolve(e.target.result || invoice.id);
-      putReq.onerror = (e) => reject(e.target.error || new Error('Put failed'));
-      tx.oncomplete = () => { /* transaction completed */ };
-      tx.onerror = () => reject(tx.error || new Error('Transaction failed'));
-    } catch (err) {
-      reject(err);
-    }
+    const tx = db.transaction('invoices', 'readwrite');
+    tx.objectStore('invoices').put(invoice);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
   });
 }
 
-/* Page read using byDate index (newest first) */
 async function idbGetPage(offset = 0, limit = 20) {
   const db = await openInvoicesDB();
   return new Promise((resolve, reject) => {
-    try {
-      const tx = db.transaction('invoices', 'readonly');
-      const store = tx.objectStore('invoices');
-      // use index for efficient newest-first traversal
-      const idx = store.index('byDate');
-      const req = idx.openCursor(null, 'prev'); // newest first
-      const results = [];
-      let idxCount = 0;
-      req.onsuccess = (e) => {
-        const cursor = e.target.result;
-        if (!cursor) return resolve(results);
-        if (idxCount >= offset && results.length < limit) results.push(cursor.value);
-        idxCount++;
-        cursor.continue();
-      };
-      req.onerror = (e) => reject(e.target.error || new Error('Cursor failed'));
-    } catch (err) {
-      reject(err);
-    }
+    const tx = db.transaction('invoices', 'readonly');
+    const store = tx.objectStore('invoices');
+    const req = store.openCursor(null, 'prev'); // newest first
+    const results = [];
+    let idx = 0;
+    req.onsuccess = (e) => {
+      const cursor = e.target.result;
+      if (!cursor) return resolve(results);
+      if (idx >= offset && results.length < limit) results.push(cursor.value);
+      idx++;
+      cursor.continue();
+    };
+    req.onerror = () => reject(req.error);
   });
 }
 
 async function idbDeleteInvoice(id) {
   const db = await openInvoicesDB();
   return new Promise((resolve, reject) => {
-    try {
-      const tx = db.transaction('invoices', 'readwrite');
-      const store = tx.objectStore('invoices');
-      const req = store.delete(id);
-      req.onsuccess = () => resolve(true);
-      req.onerror = (e) => reject(e.target.error || new Error('Delete failed'));
-      tx.onerror = () => reject(tx.error || new Error('Transaction failed'));
-    } catch (err) {
-      reject(err);
-    }
+    const tx = db.transaction('invoices', 'readwrite');
+    tx.objectStore('invoices').delete(id);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
   });
 }
 
-/* Migrate from localStorage.savedInvoices (one-time) */
+/* Migrate from localStorage.savedInvoices (if present) to IndexedDB (one-time) */
 async function migrateLocalStorageToIDB() {
   try {
     const raw = localStorage.getItem('savedInvoices');
@@ -500,16 +467,10 @@ async function migrateLocalStorageToIDB() {
     if (!Array.isArray(arr) || !arr.length) return;
     for (const rec of arr) {
       const payload = rec.payload || rec;
-      const id = rec.id || ('inv_' + Date.now() + '_' + Math.floor(Math.random()*100000));
+      const id = rec.id || ('inv_' + Date.now() + '_' + Math.floor(Math.random()*1000));
       payload.id = id;
       payload.savedAt = payload.savedAt || new Date().toISOString();
-      try {
-        await idbSaveInvoice(payload);
-      } catch (e) {
-        console.warn('Failed to migrate record', id, e);
-      }
-      // small delay to avoid identical timestamps (optional)
-      await new Promise(r => setTimeout(r, 5));
+      await idbSaveInvoice(payload);
     }
     localStorage.removeItem('savedInvoices');
     console.log('Migration to IndexedDB completed.');
