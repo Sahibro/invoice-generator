@@ -734,43 +734,22 @@ function buildPayload(){
 /* ============================
    Save / History (uses IndexedDB)
    ============================ */
-
+$('saveRecord').addEventListener('click', async () => {
+  try {
+    const payload = buildPayload();
+    const id = 'inv_' + Date.now();
+    payload.id = id;
+    await idbSaveInvoice(payload);
+    renderHistoryPage(0);
+    alert('Invoice saved locally (' + id + ').');
+  } catch (err) {
+    console.error('Save record error', err);
+    alert('Save failed.');
+  }
+});
 
 /* Pagination for history */
-let currentHistoryPage = 0;
-const PAGE_SIZE = 20;
 
-async function renderHistoryPage(page = 0) {
-  currentHistoryPage = page;
-  const list = $('historyList');
-  list.innerHTML = '<div class="muted" style="padding:8px">Loading…</div>';
-  try {
-    const items = await idbGetPage(page * PAGE_SIZE, PAGE_SIZE);
-    list.innerHTML = '';
-    if (!items.length) { list.innerHTML = '<div class="muted" style="padding:8px">No saved invoices</div>'; updateHistoryPageInfo(0); return; }
-    items.forEach(rec => {
-      const div = document.createElement('div');
-      div.className = 'history-item';
-      div.innerHTML = `<div><div style="font-weight:600">${escapeHtml(rec.invoiceNo)}</div><div class="meta">${escapeHtml(rec.clientName)} • ${formatWithSymbol(rec.grandTotal)}</div></div>
-        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
-          <button class="btn ghost load" data-id="${rec.id}">Load</button>
-          <button class="btn" style="background:#f8d7da;color:#842029;border-radius:6px;padding:6px 8px" data-id="${rec.id}">Delete</button>
-        </div>`;
-      list.appendChild(div);
-    });
-    list.querySelectorAll('button.load').forEach(b => b.addEventListener('click', (e) => { loadInvoiceById(e.currentTarget.dataset.id); $('historyPanel').style.display='none'; $('toggleHistory').setAttribute('aria-expanded','false'); }));
-    list.querySelectorAll('button[style]').forEach(b => b.addEventListener('click', async (e) => { const id=e.currentTarget.dataset.id; if(!confirm('Delete this saved invoice?')) return; await idbDeleteInvoice(id); renderHistoryPage(currentHistoryPage); }));
-    updateHistoryPageInfo(items.length);
-  } catch (err) {
-    list.innerHTML = '<div class="muted" style="padding:8px">Failed to load history</div>';
-    console.error(err);
-  }
-}
-
-function updateHistoryPageInfo(count) {
-  const info = $('historyPageInfo');
-  info.textContent = `Page ${currentHistoryPage+1} • ${count} items`;
-}
 
 /* Load / Delete */
 async function loadInvoiceById(id){
