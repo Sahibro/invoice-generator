@@ -4,7 +4,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Global B2B Invoicer — Client App</title>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <style>
   :root{
     --bg:#f5f7fb; --card:#fff; --muted:#6b7280; --accent:#0b5fff; --danger:#d9534f;
@@ -175,9 +174,6 @@ function openDB(){
     req.onerror = e => reject(e.target.error || new Error('DB open failed'));
   });
 }
-function dbTx(storeName, mode='readonly'){
-  return openDB().then(db => db.transaction(storeName, mode).objectStore(storeName));
-}
 async function idbSave(payload){
   const db = await openDB();
   return new Promise((res,rej)=>{
@@ -262,11 +258,9 @@ async function idbGetAudit(){
 
 /* =========================
    Country tax modules (plugin style)
-   Add or modify rules here for each country
    ========================= */
 const countryModules = {
   'IN': { name:'India', currency:'INR', taxLabel:'GST', computeTax: (subtotal, rule)=> {
-      // rule example: { type:'percent', rate:18 }
       if(!rule) return 0;
       if(rule.type==='percent') return +(subtotal * (rule.rate/100));
       if(rule.type==='fixed') return +rule.amount;
@@ -285,7 +279,6 @@ const countryModules = {
   'DE': { name:'Germany', currency:'EUR', taxLabel:'VAT', computeTax: (subtotal, rule)=> +(subtotal * (rule.rate/100)), defaultRule:{type:'percent',rate:19} },
   'SG': { name:'Singapore', currency:'SGD', taxLabel:'GST', computeTax: (subtotal, rule)=> +(subtotal * (rule.rate/100)), defaultRule:{type:'percent',rate:8} }
 };
-/* Add more country modules as needed */
 
 /* =========================
    Utilities: currency & locale
@@ -453,7 +446,8 @@ async function exportJSON(){
     const all = await idbGetAll();
     const blob = new Blob([JSON.stringify(all, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'invoices_export_' + Date.now() + '.json';
+    const a = document.createElement('a');
+    a.href = url; a.download = 'invoices_export_' + Date.now() + '.json';
     document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
     showMsg('Export started');
   }catch(err){ console.error(err); showMsg('Export failed', true); }
@@ -584,7 +578,6 @@ function wireUI(){
     const mod = countryModules[c];
     if(mod) {
       $('currencySelect').value = mod.currency || $('currencySelect').value;
-      // set default tax rule
       $('taxRule').value = JSON.stringify(mod.defaultRule || null);
       $('taxHelp').textContent = `${mod.taxLabel || 'Tax'} default: ${mod.defaultRule ? (mod.defaultRule.rate + (mod.defaultRule.type==='percent' ? '%' : '')) : '—'}`;
     }
@@ -608,7 +601,6 @@ function populateSelectors(){
   const curSel = $('currencySelect');
   currencies.forEach(c => { const o = document.createElement('option'); o.value = c.code; o.textContent = `${c.code} ${c.symbol}`; curSel.appendChild(o); });
   curSel.value = 'INR';
-  // tax rule select (JSON strings)
   const taxSel = $('taxRule');
   Object.keys(countryModules).forEach(k => {
     const mod = countryModules[k];
