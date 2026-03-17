@@ -42,7 +42,7 @@
         .header-title p { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
         
         .panel { background: var(--surface); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); }
-        .panel-title { font-size: 16px; font-weight: 600; color: var(--primary); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+        .panel-title { font-size: 16px; font-weight: 600; color: var(--primary); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 
         /* ==========================================
            FORM ELEMENTS
@@ -69,17 +69,17 @@
            LINE ITEMS TABLE (EDITOR)
            ========================================== */
         .items-wrapper { overflow-x: auto; margin-bottom: 16px; border: 1px solid var(--border); border-radius: 6px; }
-        .items-table { width: 100%; min-width: 600px; border-collapse: collapse; }
+        .items-table { width: 100%; min-width: 750px; border-collapse: collapse; }
         .items-table th { background: #f8fafc; padding: 10px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); }
         .items-table td { padding: 8px; border-bottom: 1px solid var(--border); }
-        .items-table input { padding: 8px; background: #fff; }
-        .col-desc { width: 35%; } .col-hsn { width: 15%; } .col-qty { width: 10%; } .col-price { width: 15%; } .col-tax { width: 10%; } .col-amt { width: 10%; text-align: right; font-weight: 600; } .col-act { width: 5%; text-align: center; }
+        .items-table input { padding: 8px; background: #fff; width: 100%; }
+        .col-desc { width: 25%; } .col-hsn { width: 12%; } .col-qty { width: 8%; } .col-price { width: 12%; } .col-disc { width: 12%; } .col-tax { width: 10%; } .col-amt { width: 15%; text-align: right; font-weight: 600; } .col-act { width: 6%; text-align: center; }
 
         /* ==========================================
            INVOICE PREVIEW (A4 STYLING)
            ========================================== */
-        .preview-wrapper { background: #cbd5e1; padding: 20px; border-radius: var(--radius); display: flex; justify-content: center; overflow-x: auto; }
-        .invoice-a4 { background: #fff; width: 210mm; min-height: 297mm; padding: 20mm; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; color: #000; }
+        .preview-wrapper { background: #cbd5e1; padding: 20px; border-radius: var(--radius); display: flex; justify-content: center; overflow-x: auto; position: relative; }
+        .invoice-a4 { background: #fff; width: 210mm; min-height: 297mm; padding: 20mm; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; color: #000; flex-shrink: 0; }
         
         .inv-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; border-bottom: 2px solid var(--primary); padding-bottom: 20px; }
         .inv-brand h2 { font-size: 28px; font-weight: 800; color: var(--primary); letter-spacing: -1px; }
@@ -112,7 +112,7 @@
         .inv-bank-lbl { color: var(--text-muted); }
         .inv-bank-val { font-weight: 600; color: var(--primary); }
 
-        .inv-totals { width: 40%; }
+        .inv-totals { width: 45%; }
         .inv-total-line { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; color: var(--text-main); }
         .inv-total-line.grand { font-size: 18px; font-weight: 700; color: var(--primary); border-top: 2px solid var(--primary); padding-top: 10px; margin-top: 4px; }
         
@@ -135,12 +135,11 @@
         .history-meta { font-size: 12px; color: var(--text-muted); }
 
         /* ==========================================
-           RESPONSIVE
+           RESPONSIVE & PRINT
            ========================================== */
         @media (max-width: 1024px) {
             .container { grid-template-columns: 1fr; }
-            .preview-wrapper { padding: 10px; }
-            .invoice-a4 { width: 100%; min-height: auto; padding: 15px; }
+            .preview-wrapper { padding: 10px; justify-content: flex-start; }
             .inv-header { flex-direction: column; gap: 15px; }
             .inv-title { text-align: left; }
             .inv-parties { flex-direction: column; }
@@ -151,6 +150,15 @@
             .inv-notes, .inv-signature { width: 100%; }
             .inv-signature { text-align: left; }
             .inv-sig-line { width: 200px; }
+        }
+
+        @media print {
+            body { background: #fff; }
+            .container > header, .editor-section, .preview-section > div:first-child { display: none !important; }
+            .container { display: block; padding: 0; margin: 0; max-width: 100%; }
+            .preview-wrapper { padding: 0; background: transparent; display: block; overflow: visible; }
+            .invoice-a4 { box-shadow: none; width: 100%; padding: 0; min-height: auto; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
     </style>
 </head>
@@ -163,7 +171,7 @@
             <p>High-Precision Math • Dynamic Tax Engine • Zero-Knowledge Local Storage</p>
         </div>
         <div style="display: flex; gap: 10px;">
-            <button class="btn btn-outline" onclick="openHistory()">📂 History</button>
+            <button class="btn btn-outline" onclick="openHistory()">📂 History & Backup</button>
             <button class="btn btn-outline" onclick="resetForm()">↺ Reset</button>
             <button class="btn btn-primary" onclick="saveInvoice()">💾 Save</button>
         </div>
@@ -292,7 +300,10 @@
         <div class="panel" style="margin-bottom: 20px;">
             <div class="panel-title">
                 Line Items
-                <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="addItem()">+ Add Item</button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="addService()">+ Add Service</button>
+                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="addItem()">+ Add Item</button>
+                </div>
             </div>
             <div class="items-wrapper">
                 <table class="items-table">
@@ -302,6 +313,7 @@
                             <th class="col-hsn" id="lblHsn">HSN/SAC</th>
                             <th class="col-qty">Qty</th>
                             <th class="col-price">Price</th>
+                            <th class="col-disc">Discount</th>
                             <th class="col-tax" id="lblItemTax">Tax %</th>
                             <th class="col-amt">Amount</th>
                             <th class="col-act"></th>
@@ -311,10 +323,6 @@
                         <!-- Items injected via JS -->
                     </tbody>
                 </table>
-            </div>
-            <div class="form-group">
-                <label>Global Discount Amount (Optional)</label>
-                <input type="number" id="globalDiscount" value="0" min="0" step="0.01" oninput="triggerCalculation()">
             </div>
         </div>
 
@@ -366,7 +374,10 @@
     <div class="preview-section">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
             <h2 style="font-size: 18px; color: var(--primary);">Live Document Preview</h2>
-            <button class="btn btn-primary" onclick="exportPDF()">📄 Download PDF</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-outline" onclick="window.print()">🖨️ Print</button>
+                <button class="btn btn-primary" onclick="exportPDF()">📄 Download PDF</button>
+            </div>
         </div>
 
         <div class="preview-wrapper">
@@ -421,10 +432,11 @@
                 <table class="inv-data-table">
                     <thead>
                         <tr>
-                            <th style="width: 40%">Description</th>
+                            <th style="width: 35%">Description</th>
                             <th style="width: 15%" id="pHsnLabel">HSN/SAC</th>
                             <th style="width: 10%" class="right">Qty</th>
-                            <th style="width: 15%" class="right">Price</th>
+                            <th style="width: 10%" class="right">Price</th>
+                            <th style="width: 10%" class="right">Disc.</th>
                             <th style="width: 20%" class="right">Amount</th>
                         </tr>
                     </thead>
@@ -449,10 +461,6 @@
                         <div class="inv-total-line">
                             <span>Subtotal</span>
                             <span id="pSubtotal">0.00</span>
-                        </div>
-                        <div class="inv-total-line" id="pDiscountRow" style="display: none; color: var(--danger);">
-                            <span>Discount</span>
-                            <span id="pDiscount">-0.00</span>
                         </div>
                         <div class="inv-total-line">
                             <span id="pTaxName">Tax</span>
@@ -488,9 +496,17 @@
 <div class="modal-overlay" id="historyModal">
     <div class="modal">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
-            <h2 style="font-size: 18px; color: var(--primary);">Invoice History</h2>
+            <h2 style="font-size: 18px; color: var(--primary);">Invoice History & Backup</h2>
             <button class="btn btn-outline" style="padding: 4px 8px;" onclick="closeHistory()">✕</button>
         </div>
+        
+        <!-- Import/Export Buttons -->
+        <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+            <button class="btn btn-primary" onclick="exportJSON()">📥 Export Backup (JSON)</button>
+            <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">📤 Import Backup</button>
+            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importJSON(event)">
+        </div>
+
         <div id="historyList">
             <!-- Injected via JS -->
         </div>
@@ -504,7 +520,7 @@
     let items = [];
     let images = { logo: null, sign: null };
     let liveExchangeRate = null;
-    let taxEngineState = { type: 'GLOBAL', label: 'Tax' }; // INDIA_INTRA, INDIA_INTER, USA, EU, GLOBAL
+    let taxEngineState = { type: 'GLOBAL', label: 'Tax' };
 
     // High-Precision Math Wrapper
     const preciseRound = (num) => Math.round((num + Number.EPSILON) * 100) / 100;
@@ -531,17 +547,14 @@
         
         let sTaxLbl = 'Tax ID', cTaxLbl = 'Tax ID', itemTaxLbl = 'Tax %', hsnLbl = 'Item Code';
 
-        // Seller Logic
         if (sCountry === 'India') { sTaxLbl = 'GSTIN'; hsnLbl = 'HSN/SAC'; }
         else if (sCountry === 'USA') { sTaxLbl = 'EIN'; hsnLbl = 'SKU / Code'; }
         else if (EU_COUNTRIES.includes(sCountry)) { sTaxLbl = 'VAT ID'; hsnLbl = 'Tariff Code'; }
 
-        // Client Logic
         if (cCountry === 'India') cTaxLbl = 'GSTIN';
         else if (cCountry === 'USA') cTaxLbl = 'EIN';
         else if (EU_COUNTRIES.includes(cCountry)) cTaxLbl = 'VAT ID';
 
-        // Engine State Logic (For Calculation)
         if (sCountry === 'India' && cCountry === 'India') {
             taxEngineState = { type: 'INDIA_INTRA', label: 'GST (CGST+SGST)' };
         } else if (sCountry === 'India' && cCountry !== 'India') {
@@ -554,7 +567,6 @@
             taxEngineState = { type: 'GLOBAL', label: 'Tax' };
         }
 
-        // Update UI Labels
         document.getElementById('lblSellerTax').innerText = sTaxLbl;
         document.getElementById('lblClientTax').innerText = cTaxLbl;
         document.getElementById('lblHsn').innerText = hsnLbl;
@@ -574,9 +586,14 @@
     function generateId() { return '_' + Math.random().toString(36).substr(2, 9); }
 
     function addItem() {
-        const id = generateId();
-        items.push({ id, desc: '', hsn: '', qty: 1, price: 0, taxRate: 0 });
+        items.push({ id: generateId(), desc: '', hsn: '', qty: 1, price: 0, discount: 0, taxRate: 0 });
         renderItems();
+    }
+
+    function addService() {
+        items.push({ id: generateId(), desc: 'Consulting Services', hsn: '9983', qty: 1, price: 100, discount: 0, taxRate: 18 });
+        renderItems();
+        triggerCalculation();
     }
 
     function removeItem(id) {
@@ -603,6 +620,7 @@
                 <td><input type="text" value="${item.hsn}" oninput="updateItem('${item.id}', 'hsn', this.value)"></td>
                 <td><input type="number" min="0" step="1" value="${item.qty}" oninput="updateItem('${item.id}', 'qty', this.value)"></td>
                 <td><input type="number" min="0" step="0.01" value="${item.price}" oninput="updateItem('${item.id}', 'price', this.value)"></td>
+                <td><input type="number" min="0" step="0.01" value="${item.discount}" oninput="updateItem('${item.id}', 'discount', this.value)"></td>
                 <td><input type="number" min="0" step="0.1" value="${item.taxRate}" oninput="updateItem('${item.id}', 'taxRate', this.value)"></td>
                 <td class="col-amt" id="amt_${item.id}">0.00</td>
                 <td class="col-act"><button class="btn btn-danger" style="padding: 4px 8px;" onclick="removeItem('${item.id}')">✕</button></td>
@@ -620,43 +638,33 @@
         
         let subtotal = 0;
         let totalTax = 0;
-        let taxBreakdownMap = {}; // For India CGST/SGST breakdown
+        let taxBreakdownMap = {};
 
         items.forEach(item => {
-            const amount = preciseRound(item.qty * item.price);
-            const taxAmt = preciseRound(amount * (item.taxRate / 100));
+            // Amount = (Qty * Price) - Discount
+            let baseAmount = preciseRound(item.qty * item.price);
+            let amountAfterDiscount = Math.max(0, preciseRound(baseAmount - item.discount));
             
-            subtotal = preciseRound(subtotal + amount);
+            const taxAmt = preciseRound(amountAfterDiscount * (item.taxRate / 100));
+            
+            subtotal = preciseRound(subtotal + amountAfterDiscount);
             totalTax = preciseRound(totalTax + taxAmt);
 
-            // Update row UI
             const amtEl = document.getElementById(`amt_${item.id}`);
-            if(amtEl) amtEl.innerText = formatter.format(amount);
+            if(amtEl) amtEl.innerText = formatter.format(amountAfterDiscount);
 
-            // Breakdown Logic
             if(item.taxRate > 0) {
                 if(!taxBreakdownMap[item.taxRate]) taxBreakdownMap[item.taxRate] = 0;
                 taxBreakdownMap[item.taxRate] = preciseRound(taxBreakdownMap[item.taxRate] + taxAmt);
             }
         });
 
-        const globalDiscount = parseFloat(document.getElementById('globalDiscount').value) || 0;
-        const grandTotal = preciseRound(subtotal - globalDiscount + totalTax);
+        const grandTotal = preciseRound(subtotal + totalTax);
 
-        // Update Preview Totals
         document.getElementById('pSubtotal').innerText = formatter.format(subtotal);
         document.getElementById('pTaxAmount').innerText = formatter.format(totalTax);
         document.getElementById('pGrandTotal').innerText = formatter.format(grandTotal);
         
-        const pDiscRow = document.getElementById('pDiscountRow');
-        if(globalDiscount > 0) {
-            pDiscRow.style.display = 'flex';
-            document.getElementById('pDiscount').innerText = '-' + formatter.format(globalDiscount);
-        } else {
-            pDiscRow.style.display = 'none';
-        }
-
-        // Handle Tax Breakdown Text (e.g., CGST/SGST)
         let breakdownText = '';
         if (taxEngineState.type === 'INDIA_INTRA' && totalTax > 0) {
             for (const [rate, amt] of Object.entries(taxBreakdownMap)) {
@@ -730,15 +738,14 @@
 
         setTxt('pNotes', val('notes'));
 
-        // Render Items in Preview
         const currency = val('invCurrency');
         const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency });
         const pBody = document.getElementById('pItemsBody');
         pBody.innerHTML = '';
         
         items.forEach(item => {
-            if(!item.desc && item.price === 0) return; // Skip empty
-            const amount = preciseRound(item.qty * item.price);
+            if(!item.desc && item.price === 0) return;
+            const amountAfterDiscount = Math.max(0, preciseRound((item.qty * item.price) - item.discount));
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>
@@ -748,14 +755,15 @@
                 <td>${item.hsn}</td>
                 <td class="right">${item.qty}</td>
                 <td class="right">${formatter.format(item.price)}</td>
-                <td class="right" style="font-weight: 600;">${formatter.format(amount)}</td>
+                <td class="right">${item.discount > 0 ? '-' + formatter.format(item.discount) : '-'}</td>
+                <td class="right" style="font-weight: 600;">${formatter.format(amountAfterDiscount)}</td>
             `;
             pBody.appendChild(tr);
         });
     }
 
     /* ==========================================
-       IMAGE HANDLING (LOGO & SIGNATURE)
+       IMAGE HANDLING
        ========================================== */
     function handleImage(input, type) {
         const file = input.files[0];
@@ -771,7 +779,7 @@
     }
 
     /* ==========================================
-       ZERO-KNOWLEDGE PRIVACY (INDEXEDDB)
+       INDEXEDDB & JSON BACKUP
        ========================================== */
     let db;
     function initDB() {
@@ -813,7 +821,6 @@
                 notes: document.getElementById('notes').value,
                 invCurrency: document.getElementById('invCurrency').value,
                 targetCurrency: document.getElementById('targetCurrency').value,
-                globalDiscount: document.getElementById('globalDiscount').value,
                 items: items,
                 images: images
             }
@@ -822,14 +829,12 @@
         const tx = db.transaction('invoices', 'readwrite');
         tx.objectStore('invoices').put(payload);
         tx.oncomplete = () => alert("Invoice Saved Locally!");
-        tx.onerror = () => alert("Failed to save invoice.");
     }
 
     function openHistory() {
         if (!db) return;
         const tx = db.transaction('invoices', 'readonly');
-        const store = tx.objectStore('invoices');
-        const req = store.getAll();
+        const req = tx.objectStore('invoices').getAll();
         
         req.onsuccess = () => {
             const list = document.getElementById('historyList');
@@ -856,9 +861,7 @@
         };
     }
 
-    function closeHistory() {
-        document.getElementById('historyModal').style.display = 'none';
-    }
+    function closeHistory() { document.getElementById('historyModal').style.display = 'none'; }
 
     function loadInvoice(id) {
         const tx = db.transaction('invoices', 'readonly');
@@ -876,7 +879,7 @@
             setVal('bankName', d.bankName); setVal('accNo', d.accNo);
             setVal('swiftCode', d.swiftCode); setVal('routingNo', d.routingNo);
             setVal('notes', d.notes); setVal('invCurrency', d.invCurrency);
-            setVal('targetCurrency', d.targetCurrency); setVal('globalDiscount', d.globalDiscount);
+            setVal('targetCurrency', d.targetCurrency);
             
             items = d.items || [];
             images = d.images || { logo: null, sign: null };
@@ -891,31 +894,65 @@
         };
     }
 
-    function resetForm() {
-        if(confirm("Clear all fields?")) location.reload();
+    function resetForm() { if(confirm("Clear all fields?")) location.reload(); }
+
+    /* Export JSON Backup */
+    function exportJSON() {
+        const tx = db.transaction('invoices', 'readonly');
+        const req = tx.objectStore('invoices').getAll();
+        req.onsuccess = () => {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(req.result));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", "invoices_backup.json");
+            dlAnchorElem.click();
+        };
+    }
+
+    /* Import JSON Backup */
+    function importJSON(event) {
+        const file = event.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                const tx = db.transaction('invoices', 'readwrite');
+                data.forEach(item => tx.objectStore('invoices').put(item));
+                tx.oncomplete = () => { alert('Backup Imported Successfully!'); openHistory(); };
+            } catch(err) { alert('Invalid JSON file format.'); }
+        };
+        reader.readAsText(file);
     }
 
     /* ==========================================
-       PROFESSIONAL PDF EXPORT
+       PDF EXPORT (FIXED CUT-OFF ISSUE)
        ========================================== */
     async function exportPDF() {
         const element = document.getElementById('invoicePDF');
         
-        // Temporarily adjust styles for perfect A4 capture
-        const originalBoxShadow = element.style.boxShadow;
-        element.style.boxShadow = 'none';
+        // FIX: Clone the element and render it off-screen to prevent scroll/viewport cropping
+        const clone = element.cloneNode(true);
+        document.body.appendChild(clone);
+        clone.style.position = 'absolute';
+        clone.style.top = '0';
+        clone.style.left = '0';
+        clone.style.zIndex = '-9999';
+        clone.style.width = '210mm'; // Force A4 width
+        clone.style.maxWidth = 'none';
+        clone.style.boxShadow = 'none';
         
         try {
-            const canvas = await html2canvas(element, {
-                scale: 2, // High resolution
+            const canvas = await html2canvas(clone, {
+                scale: 2,
                 useCORS: true,
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
+                windowWidth: clone.scrollWidth // Ensure full width is captured
             });
             
             const imgData = canvas.toDataURL('image/png');
             const { jsPDF } = window.jspdf;
             
-            // A4 size: 210mm x 297mm
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
@@ -928,7 +965,7 @@
             console.error("PDF Export Error: ", error);
             alert("Failed to generate PDF. Check console for details.");
         } finally {
-            element.style.boxShadow = originalBoxShadow;
+            document.body.removeChild(clone); // Cleanup
         }
     }
 </script>
