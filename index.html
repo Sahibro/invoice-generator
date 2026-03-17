@@ -378,7 +378,6 @@
      * High-quality PDF + row-safe slicing
      * IndexedDB storage + pagination
      * Autosave debounce + migration from localStorage
-   - Replace your old file with this complete file.
    ============================ */
 
 /* Short helpers */
@@ -716,7 +715,16 @@ function buildPayload(){
     bankDetails: $('bankDetails').value || '',
     swift: $('swift').value || '',
     iban: $('iban').value || '',
-    items: gatherItems(),
+    // FIX: Remove rowElement from items before saving to IndexedDB
+    items: calc.items.map(it => ({
+      desc: it.desc,
+      hsn: it.hsn,
+      uom: it.uom,
+      qty: it.qty,
+      unitPrice: it.unitPrice,
+      discount: it.discount,
+      rowTotal: it.rowTotal
+    })),
     subtotal: calc.subtotal || 0,
     taxType: $('taxType').value || 'GST',
     taxRate: parseFloat($('taxRate').value) || 0,
