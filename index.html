@@ -1,651 +1,179 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+
+<html>
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Global B2B Invoicer — Client App</title>
+<meta charset="UTF-8">
+<title>Invoice Generator PRO</title>
 <style>
-  :root{
-    --bg:#f5f7fb; --card:#fff; --muted:#6b7280; --accent:#0b5fff; --danger:#d9534f;
-    --success:#16a34a; --glass: rgba(255,255,255,0.6);
-  }
-  *{box-sizing:border-box}
-  body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;margin:0;background:linear-gradient(180deg,#f7f9fc, #eef3fb);color:#0f1724}
-  .wrap{max-width:1200px;margin:28px auto;padding:18px}
-  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
-  h1{font-size:20px;margin:0}
-  .grid{display:grid;grid-template-columns:1fr 380px;gap:18px}
-  .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(12,20,40,0.06)}
-  label{display:block;font-size:13px;margin-bottom:6px;color:#111827}
-  input[type=text],input[type=number],select,textarea{width:100%;padding:8px;border:1px solid #e6e9ef;border-radius:8px;font-size:14px}
-  .row{display:flex;gap:8px}
-  .btn{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
-  .btn.ghost{background:transparent;color:var(--accent);border:1px solid #e6e9ef}
-  .btn.small{padding:6px 8px;font-size:13px;border-radius:6px}
-  .muted{color:var(--muted);font-size:13px}
-  .history-item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #f1f3f7}
-  .meta{color:var(--muted);font-size:13px}
-  .controls{display:flex;gap:8px;flex-wrap:wrap}
-  .footer{margin-top:12px;text-align:right;color:var(--muted);font-size:13px}
-  .flex-col{display:flex;flex-direction:column;gap:8px}
-  .tag{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef2ff;color:#0b5fff;font-size:12px}
-  .danger{background:var(--danger);color:#fff}
-  .success{background:var(--success);color:#fff}
-  .split{display:flex;gap:8px}
-  .small-muted{font-size:12px;color:var(--muted)}
-  pre{white-space:pre-wrap;word-break:break-word;background:#f8fafc;padding:8px;border-radius:8px;border:1px solid #eef2ff}
-  @media(max-width:980px){.grid{grid-template-columns:1fr}.wrap{padding:12px}}
+body{font-family:Arial;background:#f4f6f8;padding:20px}
+.container{max-width:900px;margin:auto;background:#fff;padding:20px;border-radius:10px}
+input,button{padding:8px;margin:5px 0;width:100%}
+button{background:#111;color:#fff;border:none;cursor:pointer}
+.history-item{border-bottom:1px solid #ddd;padding:10px}
 </style>
 </head>
+
 <body>
-<div class="wrap">
-  <header>
-    <div>
-      <h1>Global B2B Invoicer</h1>
-      <div class="small-muted">Multi‑currency • Country tax rules • Offline‑first</div>
-    </div>
-    <div class="controls">
-      <select id="localeSelect" class="small-muted small" title="Choose locale"></select>
-      <select id="countrySelect" class="small-muted small" title="Choose country"></select>
-      <select id="currencySelect" class="small-muted small" title="Choose currency"></select>
-      <button id="exportAll" class="btn small">Export JSON</button>
-      <button id="exportCSV" class="btn ghost small">Export CSV</button>
-      <input id="importFile" type="file" accept="application/json" style="display:none" />
-      <button id="importBtn" class="btn ghost small">Import</button>
-    </div>
-  </header>
+<div class="container">
 
-  <div class="grid">
-    <!-- Main form -->
-    <section class="card">
-      <h2 style="margin:0 0 10px 0">Create / Edit Invoice</h2>
-      <div class="flex-col">
-        <div class="split">
-          <div style="flex:1">
-            <label>Tenant / Company ID</label>
-            <input id="tenantId" type="text" placeholder="tenant_abc (optional for server later)" />
-          </div>
-          <div style="width:160px">
-            <label>Invoice Date</label>
-            <input id="invoiceDate" type="date" />
-          </div>
-        </div>
+<h2>Invoice Generator (PRO)</h2>
 
-        <label>Invoice Number</label>
-        <input id="invoiceNo" type="text" placeholder="INV-2026-001" />
+<input id="invoiceNo" placeholder="Invoice No">
+<input id="clientName" placeholder="Client Name">
+<input id="amount" type="number" placeholder="Amount">
 
-        <label>Client Name</label>
-        <input id="clientName" type="text" placeholder="Client Pvt Ltd" />
+<button id="saveBtn">Save</button>
 
-        <label>Items (add rows)</label>
-        <div id="itemsTable" style="border:1px solid #eef2ff;border-radius:8px;padding:8px"></div>
-        <div class="row">
-          <button id="addItem" class="btn small">Add Item</button>
-          <button id="calcTotals" class="btn ghost small">Recalculate</button>
-        </div>
+<h3>History</h3>
+<div id="history"></div>
 
-        <div class="split" style="align-items:center">
-          <div>
-            <label>Tax rule</label>
-            <select id="taxRule" class="small-muted small"></select>
-            <div class="small-muted" id="taxHelp">Tax computed per country rule</div>
-          </div>
-          <div style="width:220px">
-            <label>Currency Symbol</label>
-            <input id="currencySymbol" type="text" value="₹" />
-          </div>
-        </div>
-
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-          <div>
-            <button id="saveRecord" class="btn">Save Invoice</button>
-            <button id="saveDraft" class="btn ghost">Save Draft</button>
-            <button id="clearForm" class="btn ghost">Clear</button>
-          </div>
-          <div style="text-align:right">
-            <div class="muted">Subtotal: <span id="subtotal">0.00</span></div>
-            <div class="muted">Tax: <span id="taxAmount">0.00</span></div>
-            <div style="font-weight:700">Total: <span id="grandTotal">0.00</span></div>
-          </div>
-        </div>
-
-        <div id="formMessage" class="muted"></div>
-      </div>
-    </section>
-
-    <!-- History / tools -->
-    <aside class="card" id="historyPanel">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <strong>History</strong>
-        <div class="muted" id="historyPageInfo">Page 1 • 0 items</div>
-      </div>
-      <div id="historyList" style="min-height:220px"></div>
-
-      <div style="display:flex;gap:8px;margin-top:10px;justify-content:space-between">
-        <div>
-          <button id="prevPage" class="btn ghost small">Prev</button>
-          <button id="nextPage" class="btn ghost small">Next</button>
-        </div>
-        <div>
-          <button id="bulkDelete" class="btn ghost small danger">Delete All</button>
-        </div>
-      </div>
-
-      <hr style="margin:12px 0" />
-      <div>
-        <strong>Audit Log</strong>
-        <div id="auditLog" style="max-height:120px;overflow:auto;margin-top:8px"></div>
-      </div>
-    </aside>
-  </div>
-
-  <div class="footer">Offline‑first • Use export/import to backup • For global tax rules, configure country modules</div>
 </div>
 
 <script>
-/* =========================
-   Defensive helpers
-   ========================= */
-const $ = id => document.getElementById(id);
-function escapeHtml(s){ if(s==null) return ''; return String(s).replace(/[&<>"'`=\/]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;','=':'&#61;','/':'&#47;'})[c]); }
-function showMsg(msg, isError=false){ const el=$('formMessage'); if(!el) return; el.textContent = msg; el.style.color = isError ? '#b91c1c' : '#0b5fff'; setTimeout(()=>{ if(el.textContent===msg) el.textContent=''; },5000); }
 
 /* =========================
-   IndexedDB wrapper (robust)
-   ========================= */
-const DB_NAME = 'global_b2b_v1';
-const STORE = 'invoices';
-const AUDIT = 'audit';
+   ✅ CLEAN DB LAYER
+========================= */
+const DB_NAME = "InvoicesDB";
+const STORE = "invoices";
+
 function openDB(){
-  return new Promise((resolve,reject)=>{
-    const req = indexedDB.open(DB_NAME, 2);
-    req.onupgradeneeded = e => {
+  return new Promise((res,rej)=>{
+    const req = indexedDB.open(DB_NAME,1);
+
+    req.onupgradeneeded = e=>{
       const db = e.target.result;
       if(!db.objectStoreNames.contains(STORE)){
-        const os = db.createObjectStore(STORE, { keyPath: 'id' });
-        os.createIndex('byDate', 'savedAt', { unique:false });
-        os.createIndex('byTenant', 'tenantId', { unique:false });
-      }
-      if(!db.objectStoreNames.contains(AUDIT)){
-        db.createObjectStore(AUDIT, { autoIncrement: true });
+        db.createObjectStore(STORE,{keyPath:"id"});
       }
     };
-    req.onsuccess = e => resolve(e.target.result);
-    req.onerror = e => reject(e.target.error || new Error('DB open failed'));
+
+    req.onsuccess = ()=>res(req.result);
+    req.onerror = ()=>rej(req.error);
   });
 }
-async function idbSave(payload){
+
+async function saveInvoiceDB(data){
   const db = await openDB();
+
   return new Promise((res,rej)=>{
-    const tx = db.transaction([STORE, AUDIT], 'readwrite');
-    tx.objectStore(STORE).put(payload);
-    tx.objectStore(AUDIT).add({ ts: new Date().toISOString(), action: 'save', id: payload.id, invoiceNo: payload.invoiceNo });
-    tx.oncomplete = ()=> res(payload.id);
-    tx.onerror = ()=> rej(tx.error || new Error('Save failed'));
+    const tx = db.transaction(STORE,"readwrite");
+    tx.objectStore(STORE).put(data);
+    tx.oncomplete = ()=>res(true);
+    tx.onerror = ()=>rej(tx.error);
   });
 }
-async function idbGetPage(offset=0, limit=20){
+
+async function getAllInvoicesDB(){
   const db = await openDB();
+
   return new Promise((res,rej)=>{
-    const tx = db.transaction(STORE,'readonly');
-    const idx = tx.objectStore(STORE).index('byDate');
-    const items = []; let skipped = 0;
-    idx.openCursor(null,'prev').onsuccess = e => {
-      const cur = e.target.result;
-      if(!cur){ res(items); return; }
-      if(skipped < offset){ skipped++; cur.continue(); return; }
-      if(items.length < limit){ items.push(cur.value); cur.continue(); return; }
-      res(items);
+    const tx = db.transaction(STORE,"readonly");
+    const req = tx.objectStore(STORE).getAll();
+
+    req.onsuccess = ()=>{
+      let data = req.result || [];
+
+      // ✅ stable sorting
+      data.sort((a,b)=> new Date(b.savedAt)-new Date(a.savedAt));
+
+      res(data);
     };
-    tx.onerror = ()=> rej(tx.error || new Error('Read failed'));
+
+    req.onerror = ()=>rej(req.error);
   });
 }
-async function idbGetById(id){
+
+async function deleteInvoiceDB(id){
   const db = await openDB();
-  return new Promise((res,rej)=>{
-    const tx = db.transaction(STORE,'readonly');
-    const req = tx.objectStore(STORE).get(id);
-    req.onsuccess = e => res(e.target.result);
-    req.onerror = e => rej(e.target.error || new Error('Get failed'));
-  });
+  const tx = db.transaction(STORE,"readwrite");
+  tx.objectStore(STORE).delete(id);
 }
-async function idbDelete(id){
-  const db = await openDB();
-  return new Promise((res,rej)=>{
-    const tx = db.transaction([STORE,AUDIT],'readwrite');
-    tx.objectStore(STORE).delete(id);
-    tx.objectStore(AUDIT).add({ ts: new Date().toISOString(), action: 'delete', id });
-    tx.oncomplete = ()=> res(true);
-    tx.onerror = ()=> rej(tx.error || new Error('Delete failed'));
-  });
+
+/* =========================
+   ✅ LOGIC LAYER
+========================= */
+function buildData(){
+  return {
+    id:"inv_"+Date.now(),
+    invoiceNo:invoiceNo.value,
+    clientName:clientName.value,
+    amount:amount.value,
+    savedAt:new Date().toISOString()
+  };
 }
-async function idbGetAll(){
-  const db = await openDB();
-  return new Promise((res,rej)=>{
-    const tx = db.transaction(STORE,'readonly');
-    const all = [];
-    tx.objectStore(STORE).openCursor().onsuccess = e => {
-      const c = e.target.result;
-      if(!c){ res(all); return; }
-      all.push(c.value); c.continue();
-    };
-    tx.onerror = ()=> rej(tx.error || new Error('Read all failed'));
-  });
-}
-async function idbClearAll(){
-  const db = await openDB();
-  return new Promise((res,rej)=>{
-    const tx = db.transaction([STORE,AUDIT],'readwrite');
-    tx.objectStore(STORE).clear();
-    tx.objectStore(AUDIT).add({ ts: new Date().toISOString(), action: 'clear_all' });
-    tx.oncomplete = ()=> res(true);
-    tx.onerror = ()=> rej(tx.error || new Error('Clear failed'));
-  });
-}
-async function idbGetAudit(){
-  const db = await openDB();
-  return new Promise((res,rej)=>{
-    const tx = db.transaction(AUDIT,'readonly');
-    const all = [];
-    tx.objectStore(AUDIT).openCursor().onsuccess = e => {
-      const c = e.target.result;
-      if(!c){ res(all); return; }
-      all.push(c.value); c.continue();
-    };
-    tx.onerror = ()=> rej(tx.error || new Error('Audit read failed'));
+
+/* =========================
+   ✅ UI LAYER
+========================= */
+async function renderHistory(){
+  const list = document.getElementById("history");
+  list.innerHTML="Loading...";
+
+  const data = await getAllInvoicesDB();
+
+  if(!data.length){
+    list.innerHTML="No Data";
+    return;
+  }
+
+  list.innerHTML="";
+
+  data.forEach(item=>{
+    const div=document.createElement("div");
+    div.className="history-item";
+
+    div.innerHTML=`
+      <b>${item.invoiceNo}</b><br>
+      ${item.clientName}<br>
+      ₹ ${item.amount}<br><br>
+
+      <button onclick="loadData('${item.id}')">Load</button>
+      <button onclick="deleteData('${item.id}')">Delete</button>
+    `;
+
+    list.appendChild(div);
   });
 }
 
 /* =========================
-   Country tax modules (plugin style)
-   ========================= */
-const countryModules = {
-  'IN': { name:'India', currency:'INR', taxLabel:'GST', computeTax: (subtotal, rule)=> {
-      if(!rule) return 0;
-      if(rule.type==='percent') return +(subtotal * (rule.rate/100));
-      if(rule.type==='fixed') return +rule.amount;
-      return 0;
-    }, defaultRule: { type:'percent', rate:18 } },
-  'US': { name:'United States', currency:'USD', taxLabel:'Sales Tax', computeTax: (subtotal, rule)=> {
-      if(!rule) return 0;
-      if(rule.type==='percent') return +(subtotal * (rule.rate/100));
-      return 0;
-    }, defaultRule: { type:'percent', rate:8 } },
-  'GB': { name:'United Kingdom', currency:'GBP', taxLabel:'VAT', computeTax: (subtotal, rule)=> {
-      if(!rule) return 0;
-      if(rule.type==='percent') return +(subtotal * (rule.rate/100));
-      return 0;
-    }, defaultRule: { type:'percent', rate:20 } },
-  'DE': { name:'Germany', currency:'EUR', taxLabel:'VAT', computeTax: (subtotal, rule)=> +(subtotal * (rule.rate/100)), defaultRule:{type:'percent',rate:19} },
-  'SG': { name:'Singapore', currency:'SGD', taxLabel:'GST', computeTax: (subtotal, rule)=> +(subtotal * (rule.rate/100)), defaultRule:{type:'percent',rate:8} }
+   ACTIONS
+========================= */
+saveBtn.onclick = async ()=>{
+  const data = buildData();
+
+  await saveInvoiceDB(data);
+
+  await renderHistory(); // instant refresh
+
+  alert("Saved ✅");
 };
 
-/* =========================
-   Utilities: currency & locale
-   ========================= */
-const locales = [
-  { code:'en-US', label:'English (US)' },
-  { code:'en-GB', label:'English (UK)' },
-  { code:'hi-IN', label:'Hindi (India)' },
-  { code:'fr-FR', label:'Français (France)' },
-  { code:'es-ES', label:'Español (Spain)' }
-];
-const currencies = [
-  { code:'USD', symbol:'$' }, { code:'EUR', symbol:'€' }, { code:'INR', symbol:'₹' },
-  { code:'GBP', symbol:'£' }, { code:'SGD', symbol:'S$' }
-];
-function formatCurrency(amount, locale, currencySymbol){
-  try{
-    if(typeof amount !== 'number') amount = Number(amount) || 0;
-    if(currencySymbol && currencySymbol.length>0) return currencySymbol + amount.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-    return amount.toLocaleString(locale || 'en-US', {style:'currency', currency:'USD'});
-  }catch(e){ return (currencySymbol||'') + Number(amount).toFixed(2); }
-}
+window.loadData = async (id)=>{
+  const data = await getAllInvoicesDB();
+  const item = data.find(x=>x.id===id);
 
-/* =========================
-   Form: items table helpers
-   ========================= */
-function createItemRow(item){
-  const id = item && item.id ? item.id : 'it_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
-  const wrapper = document.createElement('div');
-  wrapper.className = 'row';
-  wrapper.style.marginBottom = '6px';
-  wrapper.dataset.id = id;
-  wrapper.innerHTML = `
-    <input data-field="desc" type="text" placeholder="Description" style="flex:2" value="${escapeHtml(item?.desc||'')}" />
-    <input data-field="qty" type="number" placeholder="Qty" style="width:80px" value="${escapeHtml(item?.qty||1)}" />
-    <input data-field="rate" type="number" placeholder="Rate" style="width:120px" value="${escapeHtml(item?.rate||0)}" />
-    <button class="btn ghost small" data-action="remove">Remove</button>
-  `;
-  wrapper.querySelector('button[data-action="remove"]').addEventListener('click', ()=> {
-    wrapper.remove();
-    recalcTotals();
-  });
-  return wrapper;
-}
-function loadItemsToUI(items){
-  const container = $('itemsTable');
-  container.innerHTML = '';
-  (items || []).forEach(it => container.appendChild(createItemRow(it)));
-  if((items||[]).length===0) container.appendChild(createItemRow({desc:'Service', qty:1, rate:0}));
-}
+  if(!item) return;
 
-/* =========================
-   Calculation & payload
-   ========================= */
-function readItemsFromUI(){
-  const rows = Array.from(document.querySelectorAll('#itemsTable > .row'));
-  return rows.map(r => {
-    const desc = r.querySelector('[data-field="desc"]').value.trim();
-    const qty = Number(r.querySelector('[data-field="qty"]').value) || 0;
-    const rate = Number(r.querySelector('[data-field="rate"]').value) || 0;
-    return { desc, qty, rate };
-  }).filter(it => it.desc || it.qty || it.rate);
-}
-function recalcTotals(){
-  const items = readItemsFromUI();
-  const subtotal = items.reduce((s,it)=> s + (it.qty * it.rate), 0);
-  const country = $('countrySelect').value || 'IN';
-  const module = countryModules[country];
-  const taxRule = JSON.parse($('taxRule').value || 'null');
-  const tax = module ? module.computeTax(subtotal, taxRule) : 0;
-  const grand = +(subtotal + tax);
-  $('subtotal').textContent = subtotal.toFixed(2);
-  $('taxAmount').textContent = tax.toFixed(2);
-  $('grandTotal').textContent = grand.toFixed(2);
-  return { subtotal, tax, grand, items };
-}
-function buildPayload(existingId){
-  const invoiceNo = $('invoiceNo').value.trim() || ('inv_' + Date.now());
-  const tenantId = $('tenantId').value.trim() || null;
-  const date = $('invoiceDate').value || new Date().toISOString().slice(0,10);
-  const items = readItemsFromUI();
-  if(!items || items.length===0) throw new Error('Add at least one item');
-  const subtotal = items.reduce((s,it)=> s + (it.qty * it.rate), 0);
-  const country = $('countrySelect').value || 'IN';
-  const module = countryModules[country];
-  const taxRule = JSON.parse($('taxRule').value || 'null');
-  const tax = module ? module.computeTax(subtotal, taxRule) : 0;
-  const grandTotal = +(subtotal + tax);
-  const currencySymbol = $('currencySymbol').value || (currencies.find(c=>c.code===($('currencySelect').value))?.symbol || '');
-  return {
-    id: existingId || ('inv_' + Date.now() + '_' + Math.random().toString(36).slice(2,6)),
-    invoiceNo, tenantId, date, country, items, subtotal, tax, grandTotal, currencySymbol, savedAt: new Date().toISOString()
-  };
-}
+  invoiceNo.value = item.invoiceNo;
+  clientName.value = item.clientName;
+  amount.value = item.amount;
 
-/* =========================
-   Render history
-   ========================= */
-let currentPage = 0;
-const PAGE_SIZE = 20;
-async function renderHistory(page=0){
-  currentPage = page;
-  const list = $('historyList');
-  list.innerHTML = '<div class="muted" style="padding:8px">Loading…</div>';
-  try{
-    const items = await idbGetPage(page * PAGE_SIZE, PAGE_SIZE);
-    list.innerHTML = '';
-    if(!items || items.length===0){
-      list.innerHTML = '<div class="muted" style="padding:8px">No saved invoices</div>';
-      $('historyPageInfo').textContent = `Page ${page+1} • 0 items`;
-      return;
-    }
-    items.forEach(rec => {
-      const div = document.createElement('div');
-      div.className = 'history-item';
-      div.innerHTML = `
-        <div>
-          <div style="font-weight:600">${escapeHtml(rec.invoiceNo)}</div>
-          <div class="meta">${escapeHtml(rec.tenantId||'')} • ${escapeHtml(rec.country)} • ${escapeHtml(rec.date)}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
-          <div class="meta">${escapeHtml(rec.currencySymbol||'')}${Number(rec.grandTotal||0).toFixed(2)}</div>
-          <div style="display:flex;gap:6px">
-            <button class="btn ghost small load" data-id="${escapeHtml(rec.id)}">Load</button>
-            <button class="btn danger small del" data-id="${escapeHtml(rec.id)}">Delete</button>
-          </div>
-        </div>`;
-      list.appendChild(div);
-    });
+  alert("Loaded ✅");
+};
 
-    list.querySelectorAll('button.load').forEach(b => b.addEventListener('click', async e=>{
-      const id = e.currentTarget.dataset.id;
-      try{
-        const rec = await idbGetById(id);
-        if(!rec) return showMsg('Record not found', true);
-        $('invoiceNo').value = rec.invoiceNo || '';
-        $('tenantId').value = rec.tenantId || '';
-        $('invoiceDate').value = rec.date || '';
-        $('currencySymbol').value = rec.currencySymbol || '';
-        $('countrySelect').value = rec.country || 'IN';
-        loadItemsToUI(rec.items || []);
-        recalcTotals();
-        showMsg('Loaded ' + rec.invoiceNo);
-      }catch(err){ console.error(err); showMsg('Load failed', true); }
-    }));
+window.deleteData = async (id)=>{
+  if(!confirm("Delete?")) return;
 
-    list.querySelectorAll('button.del').forEach(b => b.addEventListener('click', async e=>{
-      const id = e.currentTarget.dataset.id;
-      if(!confirm('Delete this invoice?')) return;
-      try{ await idbDelete(id); renderHistory(currentPage); showMsg('Deleted'); } catch(err){ console.error(err); showMsg('Delete failed', true); }
-    }));
+  await deleteInvoiceDB(id);
 
-    $('historyPageInfo').textContent = `Page ${page+1} • ${items.length} items`;
-  }catch(err){
-    console.error(err);
-    list.innerHTML = '<div class="muted" style="padding:8px">Failed to load history</div>';
-  }
-}
+  renderHistory();
+};
 
-/* =========================
-   Export / Import
-   ========================= */
-async function exportJSON(){
-  try{
-    const all = await idbGetAll();
-    const blob = new Blob([JSON.stringify(all, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'invoices_export_' + Date.now() + '.json';
-    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-    showMsg('Export started');
-  }catch(err){ console.error(err); showMsg('Export failed', true); }
-}
-async function exportCSV(){
-  try{
-    const all = await idbGetAll();
-    if(!all || all.length===0) return showMsg('No records to export', true);
-    const rows = [['id','invoiceNo','tenantId','date','country','subtotal','tax','grandTotal']];
-    all.forEach(r => rows.push([r.id, r.invoiceNo, r.tenantId||'', r.date||'', r.country||'', r.subtotal||0, r.tax||0, r.grandTotal||0]));
-    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'invoices_export_' + Date.now() + '.csv';
-    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-    showMsg('CSV export started');
-  }catch(err){ console.error(err); showMsg('CSV export failed', true); }
-}
-function importJSONFile(file){
-  if(!file) return showMsg('No file selected', true);
-  const reader = new FileReader();
-  reader.onload = async e => {
-    try{
-      const data = JSON.parse(e.target.result);
-      if(!Array.isArray(data)) throw new Error('Invalid file format');
-      for(const rec of data){
-        if(!rec.id) rec.id = 'imp_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
-        if(!rec.savedAt) rec.savedAt = new Date().toISOString();
-        await idbSave(rec);
-      }
-      showMsg('Import complete');
-      renderHistory(0);
-    }catch(err){ console.error(err); showMsg('Import failed: ' + (err.message||''), true); }
-  };
-  reader.onerror = ()=> showMsg('Read failed', true);
-  reader.readAsText(file);
-}
+/* INIT */
+renderHistory();
 
-/* =========================
-   Migration & Drafts
-   ========================= */
-async function migrateLocalStorage(){
-  try{
-    const raw = localStorage.getItem('b2b_invoices_backup');
-    if(!raw) return;
-    const arr = JSON.parse(raw);
-    if(!Array.isArray(arr)) return;
-    for(const rec of arr){
-      if(!rec.id) rec.id = 'm_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
-      if(!rec.savedAt) rec.savedAt = new Date().toISOString();
-      await idbSave(rec);
-    }
-    localStorage.removeItem('b2b_invoices_backup');
-    showMsg('Migrated localStorage records');
-  }catch(e){ console.warn('Migration skipped', e); }
-}
-function saveDraft(){
-  try{
-    const draft = {
-      invoiceNo: $('invoiceNo').value || '',
-      tenantId: $('tenantId').value || '',
-      invoiceDate: $('invoiceDate').value || '',
-      items: readItemsFromUI(),
-      currencySymbol: $('currencySymbol').value || '',
-      country: $('countrySelect').value || ''
-    };
-    localStorage.setItem('invoice_draft', JSON.stringify(draft));
-    showMsg('Draft saved');
-  }catch(e){ showMsg('Draft save failed', true); }
-}
-function restoreDraft(){
-  try{
-    const d = JSON.parse(localStorage.getItem('invoice_draft') || 'null');
-    if(!d) return;
-    $('invoiceNo').value = d.invoiceNo || '';
-    $('tenantId').value = d.tenantId || '';
-    $('invoiceDate').value = d.invoiceDate || '';
-    $('currencySymbol').value = d.currencySymbol || '';
-    $('countrySelect').value = d.country || 'IN';
-    loadItemsToUI(d.items || []);
-    recalcTotals();
-    showMsg('Draft restored');
-  }catch(e){}
-}
-
-/* =========================
-   Audit UI
-   ========================= */
-async function renderAudit(){
-  const el = $('auditLog');
-  el.innerHTML = '';
-  try{
-    const logs = await idbGetAudit();
-    if(!logs || logs.length===0) { el.innerHTML = '<div class="muted">No audit entries</div>'; return; }
-    logs.reverse().slice(0,200).forEach(l => {
-      const d = document.createElement('div');
-      d.className = 'small-muted';
-      d.style.padding = '6px 0';
-      d.textContent = `${l.ts} • ${l.action} ${l.id ? '• ' + l.id : ''} ${l.invoiceNo ? '• ' + l.invoiceNo : ''}`;
-      el.appendChild(d);
-    });
-  }catch(e){ console.warn(e); el.innerHTML = '<div class="muted">Audit load failed</div>'; }
-}
-
-/* =========================
-   Wire events & init
-   ========================= */
-function wireUI(){
-  $('addItem').addEventListener('click', ()=> { $('itemsTable').appendChild(createItemRow({desc:'',qty:1,rate:0})); });
-  $('calcTotals').addEventListener('click', recalcTotals);
-  $('saveRecord').addEventListener('click', async ()=> {
-    try{
-      const payload = buildPayload();
-      await idbSave(payload);
-      showMsg('Saved ' + payload.invoiceNo);
-      renderHistory(0);
-      renderAudit();
-    }catch(err){ showMsg(err.message || 'Save failed', true); }
-  });
-  $('saveDraft').addEventListener('click', saveDraft);
-  $('clearForm').addEventListener('click', ()=> { $('invoiceNo').value=''; $('clientName').value=''; loadItemsToUI([]); recalcTotals(); showMsg('Cleared'); });
-  $('exportAll').addEventListener('click', exportJSON);
-  $('exportCSV').addEventListener('click', exportCSV);
-  $('importBtn').addEventListener('click', ()=> $('importFile').click());
-  $('importFile').addEventListener('change', e=> { const f = e.target.files && e.target.files[0]; if(f) importJSONFile(f); $('importFile').value=''; });
-  $('countrySelect').addEventListener('change', ()=> {
-    const c = $('countrySelect').value;
-    const mod = countryModules[c];
-    if(mod) {
-      $('currencySelect').value = mod.currency || $('currencySelect').value;
-      $('taxRule').value = JSON.stringify(mod.defaultRule || null);
-      $('taxHelp').textContent = `${mod.taxLabel || 'Tax'} default: ${mod.defaultRule ? (mod.defaultRule.rate + (mod.defaultRule.type==='percent' ? '%' : '')) : '—'}`;
-    }
-    recalcTotals();
-  });
-  $('prevPage').addEventListener('click', ()=> { if(currentPage>0){ currentPage--; renderHistory(currentPage); }});
-  $('nextPage').addEventListener('click', ()=> { currentPage++; renderHistory(currentPage); });
-  $('bulkDelete').addEventListener('click', async ()=> {
-    if(!confirm('Delete ALL invoices? This cannot be undone.')) return;
-    try{ await idbClearAll(); renderHistory(0); renderAudit(); showMsg('All records deleted'); } catch(e){ showMsg('Delete failed', true); }
-  });
-}
-
-function populateSelectors(){
-  const localeSel = $('localeSelect');
-  locales.forEach(l => { const o = document.createElement('option'); o.value = l.code; o.textContent = l.label; localeSel.appendChild(o); });
-  localeSel.value = navigator.language || 'en-US';
-  const countrySel = $('countrySelect');
-  Object.keys(countryModules).forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = `${countryModules[k].name} (${k})`; countrySel.appendChild(o); });
-  countrySel.value = 'IN';
-  const curSel = $('currencySelect');
-  currencies.forEach(c => { const o = document.createElement('option'); o.value = c.code; o.textContent = `${c.code} ${c.symbol}`; curSel.appendChild(o); });
-  curSel.value = 'INR';
-  const taxSel = $('taxRule');
-  Object.keys(countryModules).forEach(k => {
-    const mod = countryModules[k];
-    const o = document.createElement('option');
-    o.value = JSON.stringify(mod.defaultRule || null);
-    o.textContent = `${mod.name} default: ${mod.defaultRule ? (mod.defaultRule.rate + (mod.defaultRule.type==='percent' ? '%' : '')) : '—'}`;
-    taxSel.appendChild(o);
-  });
-  taxSel.value = JSON.stringify(countryModules['IN'].defaultRule);
-}
-
-/* Autosave drafts periodically */
-let autosaveInterval = null;
-function startAutosave(){
-  if(autosaveInterval) clearInterval(autosaveInterval);
-  autosaveInterval = setInterval(()=> {
-    try{
-      const draft = {
-        invoiceNo: $('invoiceNo').value || '',
-        tenantId: $('tenantId').value || '',
-        invoiceDate: $('invoiceDate').value || '',
-        items: readItemsFromUI(),
-        currencySymbol: $('currencySymbol').value || '',
-        country: $('countrySelect').value || ''
-      };
-      localStorage.setItem('invoice_autosave', JSON.stringify(draft));
-    }catch(e){}
-  }, 30000);
-}
-
-/* Initialization */
-async function init(){
-  try{
-    if(!('indexedDB' in window)) { alert('IndexedDB not supported in this browser'); return; }
-    populateSelectors();
-    wireUI();
-    loadItemsToUI([]);
-    startAutosave();
-    await migrateLocalStorage();
-    restoreDraft();
-    renderHistory(0);
-    renderAudit();
-  }catch(err){ console.error('Init failed', err); showMsg('Initialization error', true); }
-}
-document.addEventListener('DOMContentLoaded', init);
 </script>
+
 </body>
 </html>
