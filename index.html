@@ -1,177 +1,218 @@
-<!DOCTYPE html>
+<!doctype html>
 
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Invoice Generator PRO</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Universal B2B Invoice Generator — Fixed</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-body{font-family:Arial;background:#f4f6f8;padding:20px}
-.container{max-width:900px;margin:auto;background:#fff;padding:20px;border-radius:10px}
-input,button{padding:8px;margin:5px 0;width:100%}
-button{background:#111;color:#fff;border:none;cursor:pointer}
-.history-item{border-bottom:1px solid #ddd;padding:10px}
+:root{--bg:#f4f6f8;--card:#fff;--muted:#6b7280;--primary:#0f172a;--accentGold:#c9a34a;--radius:12px;--max-width:1200px}
+*{box-sizing:border-box}
+body{margin:0;font-family:Poppins,Arial;background:var(--bg);color:var(--primary);padding:18px}
+.wrap{max-width:var(--max-width);margin:auto;display:grid;grid-template-columns:1fr 420px;gap:18px}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 8px 20px rgba(0,0,0,0.05)}
+input,select,textarea,button{width:100%;padding:8px;margin:5px 0;border-radius:8px;border:1px solid #e6e9ef}
+button{cursor:pointer;background:#111;color:#fff;border:none}
+.items header,.item-row{display:grid;grid-template-columns:1fr 8% 8% 15% 10% 12% 6%;gap:6px}
+.item-row{border-top:1px solid #eee;padding:6px 0}
+.history-panel{position:fixed;right:10px;top:70px;width:350px;background:#fff;padding:10px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,0.1);max-height:70vh;overflow:auto}
+.history-item{border-bottom:1px solid #eee;padding:8px}
 </style>
 </head>
 
 <body>
-<div class="container">
 
-<h2>Invoice Generator (PRO)</h2>
+<div class="wrap">
+
+<!-- LEFT -->
+
+<div class="card">
+
+<h2>Invoice</h2>
 
 <input id="invoiceNo" placeholder="Invoice No">
 <input id="clientName" placeholder="Client Name">
-<input id="amount" type="number" placeholder="Amount">
 
-<button id="saveBtn">Save</button>
+<div id="itemsContainer" class="items"></div>
 
-<h3>History</h3>
-<div id="history"></div>
+<button id="addItem">+ Add Item</button> <button id="saveRecord">Save</button>
 
+</div>
+
+<!-- RIGHT -->
+
+<div class="card">
+
+<h3>Summary</h3>
+<div>Subtotal: <span id="subtotal">0</span></div>
+<div>Total: <span id="grandTotal">0</span></div>
+
+<button id="toggleHistory">History</button>
+
+</div>
+
+</div>
+
+<!-- HISTORY -->
+
+<div id="historyPanel" class="history-panel" style="display:none">
+<div id="historyList"></div>
+<button id="prev">Prev</button>
+<button id="next">Next</button>
 </div>
 
 <script>
 
 /* =========================
-   ✅ CLEAN DB LAYER
+   DB LAYER (FIXED)
 ========================= */
-const DB_NAME = "InvoicesDB";
-const STORE = "invoices";
-
 function openDB(){
   return new Promise((res,rej)=>{
-    const req = indexedDB.open(DB_NAME,1);
-
-    req.onupgradeneeded = e=>{
-      const db = e.target.result;
-      if(!db.objectStoreNames.contains(STORE)){
-        db.createObjectStore(STORE,{keyPath:"id"});
+    const req=indexedDB.open("InvoicesDB",1);
+    req.onupgradeneeded=e=>{
+      const db=e.target.result;
+      if(!db.objectStoreNames.contains("invoices")){
+        db.createObjectStore("invoices",{keyPath:"id"});
       }
     };
-
-    req.onsuccess = ()=>res(req.result);
-    req.onerror = ()=>rej(req.error);
+    req.onsuccess=()=>res(req.result);
+    req.onerror=()=>rej(req.error);
   });
 }
 
-async function saveInvoiceDB(data){
-  const db = await openDB();
-
-  return new Promise((res,rej)=>{
-    const tx = db.transaction(STORE,"readwrite");
-    tx.objectStore(STORE).put(data);
-    tx.oncomplete = ()=>res(true);
-    tx.onerror = ()=>rej(tx.error);
-  });
+async function saveDB(data){
+  const db=await openDB();
+  const tx=db.transaction("invoices","readwrite");
+  tx.objectStore("invoices").put(data);
 }
 
-async function getAllInvoicesDB(){
-  const db = await openDB();
-
+/* ✅ FIXED GET (NO CURSOR) */
+async function getAllDB(){
+  const db=await openDB();
   return new Promise((res,rej)=>{
-    const tx = db.transaction(STORE,"readonly");
-    const req = tx.objectStore(STORE).getAll();
-
-    req.onsuccess = ()=>{
-      let data = req.result || [];
-
-      // ✅ stable sorting
-      data.sort((a,b)=> new Date(b.savedAt)-new Date(a.savedAt));
-
-      res(data);
+    const tx=db.transaction("invoices","readonly");
+    const req=tx.objectStore("invoices").getAll();
+    req.onsuccess=()=>{
+      let d=req.result||[];
+      d.sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt));
+      res(d);
     };
-
-    req.onerror = ()=>rej(req.error);
   });
 }
 
-async function deleteInvoiceDB(id){
-  const db = await openDB();
-  const tx = db.transaction(STORE,"readwrite");
-  tx.objectStore(STORE).delete(id);
+async function deleteDB(id){
+  const db=await openDB();
+  const tx=db.transaction("invoices","readwrite");
+  tx.objectStore("invoices").delete(id);
 }
 
 /* =========================
-   ✅ LOGIC LAYER
+   ITEMS
 ========================= */
-function buildData(){
-  return {
+function addItem(){
+  const row=document.createElement("div");
+  row.className="item-row";
+  row.innerHTML=`
+    <input class="desc" placeholder="Desc">
+    <input class="qty" type="number" value="1">
+    <input class="price" type="number" value="0">
+    <input disabled>
+    <input disabled>
+    <div class="total">0</div>
+    <button class="del">x</button>
+  `;
+  row.querySelector(".del").onclick=()=>{row.remove();calc();}
+  row.querySelectorAll("input").forEach(i=>i.oninput=calc);
+  itemsContainer.appendChild(row);
+}
+
+addItem();
+addItem();
+
+/* =========================
+   CALC
+========================= */
+function calc(){
+  let total=0;
+  document.querySelectorAll(".item-row").forEach(r=>{
+    const q=+r.querySelector(".qty").value||0;
+    const p=+r.querySelector(".price").value||0;
+    const t=q*p;
+    r.querySelector(".total").innerText=t;
+    total+=t;
+  });
+  subtotal.innerText=total;
+  grandTotal.innerText=total;
+}
+
+/* =========================
+   SAVE
+========================= */
+saveRecord.onclick=async()=>{
+  const data={
     id:"inv_"+Date.now(),
     invoiceNo:invoiceNo.value,
     clientName:clientName.value,
-    amount:amount.value,
+    total:grandTotal.innerText,
     savedAt:new Date().toISOString()
   };
-}
+  await saveDB(data);
+  await renderHistory(); // instant refresh
+  alert("Saved");
+};
 
 /* =========================
-   ✅ UI LAYER
+   HISTORY (FIXED)
 ========================= */
+let page=0,limit=5,cache=[];
+
 async function renderHistory(){
-  const list = document.getElementById("history");
-  list.innerHTML="Loading...";
+  cache=await getAllDB();
+  draw();
+}
 
-  const data = await getAllInvoicesDB();
+function draw(){
+  historyList.innerHTML="";
+  const slice=cache.slice(page*limit,(page+1)*limit);
 
-  if(!data.length){
-    list.innerHTML="No Data";
-    return;
-  }
-
-  list.innerHTML="";
-
-  data.forEach(item=>{
+  slice.forEach(i=>{
     const div=document.createElement("div");
     div.className="history-item";
-
     div.innerHTML=`
-      <b>${item.invoiceNo}</b><br>
-      ${item.clientName}<br>
-      ₹ ${item.amount}<br><br>
-
-      <button onclick="loadData('${item.id}')">Load</button>
-      <button onclick="deleteData('${item.id}')">Delete</button>
+      <b>${i.invoiceNo}</b><br>
+      ${i.clientName}<br>
+      ₹${i.total}<br>
+      <button onclick="loadInv('${i.id}')">Load</button>
+      <button onclick="delInv('${i.id}')">Delete</button>
     `;
-
-    list.appendChild(div);
+    historyList.appendChild(div);
   });
 }
 
-/* =========================
-   ACTIONS
-========================= */
-saveBtn.onclick = async ()=>{
-  const data = buildData();
-
-  await saveInvoiceDB(data);
-
-  await renderHistory(); // instant refresh
-
-  alert("Saved ✅");
+window.loadInv=async(id)=>{
+  const item=cache.find(x=>x.id===id);
+  invoiceNo.value=item.invoiceNo;
+  clientName.value=item.clientName;
 };
 
-window.loadData = async (id)=>{
-  const data = await getAllInvoicesDB();
-  const item = data.find(x=>x.id===id);
-
-  if(!item) return;
-
-  invoiceNo.value = item.invoiceNo;
-  clientName.value = item.clientName;
-  amount.value = item.amount;
-
-  alert("Loaded ✅");
-};
-
-window.deleteData = async (id)=>{
-  if(!confirm("Delete?")) return;
-
-  await deleteInvoiceDB(id);
-
+window.delInv=async(id)=>{
+  await deleteDB(id);
   renderHistory();
 };
 
-/* INIT */
-renderHistory();
+prev.onclick=()=>{if(page>0){page--;draw();}}
+next.onclick=()=>{if((page+1)*limit<cache.length){page++;draw();}}
+
+toggleHistory.onclick=()=>{
+  historyPanel.style.display=
+  historyPanel.style.display==="none"?"block":"none";
+  renderHistory();
+};
+
+addItem.onclick=addItem;
+
+calc();
 
 </script>
 
