@@ -170,7 +170,7 @@
             <div class="form-grid">
                 <div class="form-group full"><input type="text" id="sellerName" placeholder="Company Name" oninput="updatePreview()"></div>
                 <div class="form-group"><select id="sellerCountry" onchange="updateTaxEngine()"><option value="India" selected>India</option><option value="USA">United States</option><option value="UK">United Kingdom</option><option value="Germany">Germany (EU)</option><option value="UAE">UAE</option><option value="Other">Other</option></select></div>
-                <div class="form-group"><input type="text" id="sellerTaxId" placeholder="Tax ID (GSTIN/EIN/VAT)" oninput="updatePreview()"></div>
+                <div class="form-group"><input type="text" id="sellerTaxId" placeholder="Enter GSTIN" oninput="updatePreview()"></div>
                 <div class="form-group full"><input type="text" id="sellerStreet" placeholder="Street Address" oninput="updatePreview()"></div>
             </div>
             <div class="form-grid-3" style="margin-top: 12px;">
@@ -185,7 +185,7 @@
             <div class="form-grid">
                 <div class="form-group full"><input type="text" id="clientName" placeholder="Client Company Name" oninput="updatePreview()"></div>
                 <div class="form-group"><select id="clientCountry" onchange="updateTaxEngine()"><option value="India">India</option><option value="USA" selected>United States</option><option value="UK">United Kingdom</option><option value="Germany">Germany (EU)</option><option value="UAE">UAE</option><option value="Other">Other</option></select></div>
-                <div class="form-group"><input type="text" id="clientTaxId" placeholder="Client Tax ID" oninput="updatePreview()"></div>
+                <div class="form-group"><input type="text" id="clientTaxId" placeholder="Enter EIN" oninput="updatePreview()"></div>
                 <div class="form-group full"><input type="text" id="clientStreet" placeholder="Street Address" oninput="updatePreview()"></div>
             </div>
             <div class="form-grid-3" style="margin-top: 12px;">
@@ -261,7 +261,7 @@
             </div>
         </div>
 
-        <div class="preview-wrapper">
+        <div class="preview-wrapper" id="previewWrapper">
             <div class="invoice-a4" id="invoicePDF">
                 <div class="inv-header">
                     <div class="inv-brand">
@@ -423,8 +423,11 @@
         else if (EU_COUNTRIES.includes(sCountry)) { taxEngineState = { type: 'EU', label: 'VAT' }; } 
         else { taxEngineState = { type: 'GLOBAL', label: 'Tax' }; }
 
-        document.getElementById('lblSellerTax').innerText = sTaxLbl;
-        document.getElementById('lblClientTax').innerText = cTaxLbl;
+        // FIX 2: Dynamic Placeholders
+        document.getElementById('sellerTaxId').placeholder = `Enter ${sTaxLbl}`;
+        document.getElementById('clientTaxId').placeholder = `Enter ${cTaxLbl}`;
+
+        // Safely update labels
         document.getElementById('lblHsn').innerText = hsnLbl;
         document.getElementById('lblItemTax').innerText = itemTaxLbl;
         
@@ -562,13 +565,17 @@
 
         setTxt('pSellerName', val('sellerName') || 'Company Name');
         setTxt('pSellerAddressFull', formatAddress(val('sellerStreet'), val('sellerCity'), val('sellerState'), val('sellerZip'), val('sellerCountry')));
-        setTxt('pSellerTax', val('sellerTaxId'));
-        document.getElementById('pSellerTaxBadge').style.display = val('sellerTaxId') ? 'inline-block' : 'none';
+        
+        let sTax = val('sellerTaxId');
+        setTxt('pSellerTax', sTax);
+        document.getElementById('pSellerTaxBadge').style.display = sTax ? 'inline-block' : 'none';
 
         setTxt('pClientName', val('clientName') || 'Client Name');
         setTxt('pClientAddressFull', formatAddress(val('clientStreet'), val('clientCity'), val('clientState'), val('clientZip'), val('clientCountry')));
-        setTxt('pClientTax', val('clientTaxId'));
-        document.getElementById('pClientTaxBadge').style.display = val('clientTaxId') ? 'inline-block' : 'none';
+        
+        let cTax = val('clientTaxId');
+        setTxt('pClientTax', cTax);
+        document.getElementById('pClientTaxBadge').style.display = cTax ? 'inline-block' : 'none';
 
         setTxt('pInvNo', val('invNo') || 'DRAFT'); setTxt('pPoNo', val('poNo')); setTxt('pIssueDate', val('issueDate')); setTxt('pDueDate', val('dueDate'));
         setTxt('pBankName', val('bankName')); setTxt('pAccNo', val('accNo')); setTxt('pSwift', val('swiftCode')); setTxt('pRouting', val('routingNo'));
@@ -615,6 +622,7 @@
     }
 
     function buildJsonSchema() {
+        triggerCalculation(); // FIX 3: Ensure calculations are fresh before export
         const val = (id) => document.getElementById(id).value;
         return {
             id: val('invNo') || 'DRAFT_' + Date.now(), timestamp: Date.now(),
@@ -676,6 +684,7 @@
     function resetForm() { if(confirm("Clear all fields?")) location.reload(); }
 
     function exportJSON() {
+        triggerCalculation(); // Ensure latest data is exported
         const tx = db.transaction('invoices', 'readonly');
         const req = tx.objectStore('invoices').getAll();
         req.onsuccess = () => {
@@ -699,22 +708,30 @@
 
     function exportPDF() {
         const element = document.getElementById('invoicePDF');
+        const wrapper = document.getElementById('previewWrapper');
         const btn = document.getElementById('btnDownloadPdf');
+        
         btn.innerText = "⏳ Generating..."; btn.disabled = true;
+
+        // FIX 1: Temporarily remove overflow to prevent blank PDF capture
+        const originalOverflow = wrapper.style.overflow;
+        wrapper.style.overflow = 'visible';
 
         const opt = {
             margin:       [10, 0, 10, 0],
             filename:     (document.getElementById('invNo').value || 'Invoice') + '.pdf',
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
+            html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // FIX FOR MULTI-PAGE CUT-OFF
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
         html2pdf().set(opt).from(element).save().then(() => {
+            wrapper.style.overflow = originalOverflow; // Restore overflow
             btn.innerText = "📄 Download PDF"; btn.disabled = false;
         }).catch(err => {
             console.error(err); alert("Failed to generate PDF.");
+            wrapper.style.overflow = originalOverflow;
             btn.innerText = "📄 Download PDF"; btn.disabled = false;
         });
     }
